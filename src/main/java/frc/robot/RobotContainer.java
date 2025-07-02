@@ -46,28 +46,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.AlgaeStowCommand;
-import frc.robot.commands.BargeAlignCommand;
-import frc.robot.commands.BargeScoreThrowCommand;
-import frc.robot.commands.DisengageClimber;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.EngageClimber;
-import frc.robot.commands.L4ToStow;
-import frc.robot.commands.NeutralClimber;
-import frc.robot.commands.OutakeAlgae;
-import frc.robot.commands.OutakeCoral;
-import frc.robot.commands.ProcessorAlignCommand;
-import frc.robot.commands.ReadyProcessorScore;
-import frc.robot.commands.ReefScoreCommandFactory;
-import frc.robot.commands.ReefScoreCommandFactory.ReefPosition;
-import frc.robot.commands.StationIntakeCommand;
-import frc.robot.commands.StationIntakeCommandFactory;
-import frc.robot.commands.StationIntakeCommandFactory.IntakePosition;
-import frc.robot.commands.StationIntakeToStow;
-import frc.robot.commands.StowCommand;
-import frc.robot.commands.StowToBarge;
-import frc.robot.commands.TakeAlgaeL2;
-import frc.robot.commands.TakeAlgaeL3;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.algaeendeffector.AlgaeEndEffector;
 import frc.robot.subsystems.algaeendeffector.AlgaeEndEffectorIOSim;
@@ -110,7 +89,6 @@ import frc.robot.util.ReefPositionsUtil;
 import frc.robot.util.ReefPositionsUtil.AutoAlignSide;
 import frc.robot.util.ReefPositionsUtil.DeAlgaeLevel;
 import frc.robot.util.ReefPositionsUtil.ScoreLevel;
-import frc.robot.util.SelectorCommandFactory;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -146,7 +124,6 @@ public class RobotContainer {
 
   private final AprilTagVision vision;
 
-  private AutoCommandManager autoCommandManager;
   private RobotState robotState;
   private ReefPositionsUtil reefPositions;
 
@@ -160,15 +137,8 @@ public class RobotContainer {
   final LoggedTunableNumber setShoulderAngle = new LoggedTunableNumber("RobotState/Shoulder/setAngle", 0);
   final LoggedTunableNumber setElbowAngle = new LoggedTunableNumber("RobotState/Elbow/setAngle", 0);
   final LoggedTunableNumber setClimberVolts = new LoggedTunableNumber("RobotState/Climber/setVolts", 4);
-
-  private LoggedDashboardChooser<IntakePosition> intakePosChooser = new LoggedDashboardChooser<>("Intake Position");
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer(){
-
-    // Intake Options
-    intakePosChooser.addDefaultOption("Inside", IntakePosition.Inside);
-    intakePosChooser.addOption("Center", IntakePosition.Center);
-    intakePosChooser.addOption("Outside", IntakePosition.Outside);
 
     CanDef.Builder canivoreCanBuilder = CanDef.builder().bus(CanBus.CANivore);
     CanDef.Builder rioCanBuilder = CanDef.builder().bus(CanBus.Rio);
@@ -286,15 +256,10 @@ public class RobotContainer {
 
       //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
     }
-
-
-    autoCommandManager = new AutoCommandManager(drive, shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector);
     reefPositions = ReefPositionsUtil.getInstance();
-    ReefScoreCommandFactory.initialize();
 
     // Configure the button bindings
     configureDriverBindings();
-    configureTestButtonBindings();
     configureCharacterizationButtonBindings();
   }
 
@@ -311,399 +276,10 @@ public class RobotContainer {
           () -> -controller.getRightX() * ANGULAR_SPEED
         )
     );
-    
-    // Conditional DeAlgae no auto align
-    controller.leftTrigger()
-    .and(()->!ReefPositionsUtil.getInstance().getIsAutoAligning())
-    .onTrue(new ConditionalCommand(
-      new TakeAlgaeL2(shoulder, elbow, wrist, algaeEndEffector, elevator), 
-      new TakeAlgaeL3(shoulder, elbow, wrist, algaeEndEffector, elevator), 
-      () -> reefPositions.isSelected(DeAlgaeLevel.Low)))
-    .onFalse(new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector));
-
-    //conditional DeAlgae auto align
-    controller.leftTrigger()
-    .and(()->ReefPositionsUtil.getInstance().getIsAutoAligning())
-    .onTrue(new ConditionalCommand(
-      ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Low, drive, shoulder, elbow, elevator, wrist, algaeEndEffector), 
-      ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Top, drive, shoulder, elbow, elevator, wrist, algaeEndEffector), 
-      () -> reefPositions.isSelected(DeAlgaeLevel.Low)))
-    .onFalse(new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector));
+  }
 
     // Coral Station Intake Auto Align Sequence†
-    co_controller.povUp()
-      .and(() -> ReefPositionsUtil.getInstance().getIsAutoAligning())
-      .onTrue(
-        StationIntakeCommandFactory.getNewStationIntakeSequence(
-            () -> {
-            IntakePosition pos = intakePosChooser.get();
-            return pos == null ? IntakePosition.Inside : pos;
-          },
-            shoulder, elbow, elevator, wrist, coralEndEffector, drive
-        )
-      )
-    .onFalse(new StationIntakeToStow(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-
-    // Go to barge auto align
-    controller.y()
-      .and(()->ReefPositionsUtil.getInstance().getIsAutoAligning())
-      .whileTrue(
-        DriveCommands.brakeDrive(drive)
-          .alongWith(new StowToBarge(shoulder, elbow, wrist))
-          .andThen(new BargeAlignCommand(drive,()->MathUtil.applyDeadband(controller.getLeftX(),0.1)))
-          .andThen(new BargeScoreThrowCommand(elevator, wrist, algaeEndEffector))
-          .andThen(new WaitCommand(0.5))
-          .andThen(algaeEndEffector.getNewSetVoltsCommand(0.0))
-          .andThen(elevator.getNewSetDistanceCommand(0.0))
-          .andThen(
-            new ConditionalCommand(
-              new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector), 
-              new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-              algaeEndEffector.hasAlgaeTrigger()
-            ).onlyIf(controller.y().negate())
-          )
-      )
-      .onFalse(
-        new ConditionalCommand(
-          new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector), 
-          new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-          algaeEndEffector.hasAlgaeTrigger()
-        )
-      );
-
-    // Go to barge no auto align
-    controller.y()
-      .and(()->!ReefPositionsUtil.getInstance().getIsAutoAligning())
-      .onTrue(
-        new StowToBarge(shoulder, elbow, wrist)
-      )
-      .onFalse(
-        new ConditionalCommand(
-          new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector), 
-          new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-          algaeEndEffector.hasAlgaeTrigger()
-        )
-      );
-
-    // Processer Score
-    controller.b()
-      .and(()->ReefPositionsUtil.getInstance().getIsAutoAligning())
-      .onTrue(
-        new ReadyProcessorScore(shoulder, elbow, elevator, wrist, algaeEndEffector)
-          .alongWith(new ProcessorAlignCommand(drive))
-        .andThen(new OutakeAlgae(algaeEndEffector))
-        .andThen(new WaitUntilCommand(algaeEndEffector.hasAlgaeTrigger().negate()))
-        .andThen(
-          new ConditionalCommand(
-            new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector), 
-            new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-            algaeEndEffector.hasAlgaeTrigger()
-          )
-        )
-      );
-
-    controller.b()
-      .and(()->!ReefPositionsUtil.getInstance().getIsAutoAligning())
-      .onTrue(
-        new ReadyProcessorScore(shoulder, elbow, elevator, wrist, algaeEndEffector)
-        )
-      .onFalse(
-        new OutakeAlgae(algaeEndEffector)
-        .andThen(new WaitCommand(0.3))
-        .andThen(new WaitUntilCommand(algaeEndEffector.hasAlgaeTrigger().negate()))
-        .andThen(
-          new ConditionalCommand(
-            new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector), 
-            new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-            algaeEndEffector.hasAlgaeTrigger()
-          )
-        )
-      );
     
-    //#region reef scoring
-
-    // Hashmaps for Coral level commands
-
-    Map<ReefPositionsUtil.ScoreLevel,Command> coralLevelCommands = SelectorCommandFactory.getCoralLevelPrepCommandSelector(shoulder, elbow, elevator, wrist);
-    Map<ReefPositionsUtil.ScoreLevel,Command> scoreCoralLevelCommands = SelectorCommandFactory.getCoralLevelScoreCommandSelector(shoulder, elbow, elevator, wrist, coralEndEffector);
-    Map<ReefPositionsUtil.ScoreLevel,Command> stopCoralLevelCommands = SelectorCommandFactory.getCoralLevelStopScoreCommandSelector(elbow, wrist, coralEndEffector, drive);
-    Map<ReefPositionsUtil.ScoreLevel,Command> waitUntilCoralLevelCommands = SelectorCommandFactory.getCoralLevelWaitUntilAtLevelCommandSelector(shoulder, elbow, elevator, wrist);
-
-    /*  1. Right bumper pressed and AutoAligning is disabled
-          - Goes to the score level of what is selected by the co-driver
-        2. Right bumper pressed and AutoAligning is enabled
-          - Nothing happens
-        3. Right bumper is released and AutoAligning is disabled
-          - If reefScoreL4
-            - Goes to Coral Stow
-          - Else
-            - Goes to Algae Stow
-    */
-
-    // Left side reef auto align
-    controller.rightBumper()
-    .and(
-      ()->reefPositions.getIsAutoAligning()
-    ).and(
-      () -> {return reefPositions.getAutoAlignSide() == AutoAlignSide.Left;}
-    ).whileTrue(
-      ReefScoreCommandFactory.getNewReefCoralScoreSequence(
-        ReefPosition.Left, 
-        true,
-        () -> SelectorCommandFactory.getCoralLevelPrepCommandSelector(shoulder, elbow, elevator, wrist), 
-        SelectorCommandFactory.getCoralLevelScoreCommandSelector(shoulder, elbow, elevator, wrist, coralEndEffector),
-        SelectorCommandFactory.getCoralLevelStopScoreCommandSelector(elbow, wrist, coralEndEffector, drive),
-        () -> SelectorCommandFactory.getCoralLevelWaitUntilAtLevelCommandSelector(shoulder, elbow, elevator, wrist),
-        drive
-      )
-    ).onFalse(
-    new ConditionalCommand(
-      new L4ToStow(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-      new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-      () -> reefPositions.isSelected(ScoreLevel.L4)
-    ));
-
-    // Right side reef auto align
-    controller.rightBumper()
-    .and(
-      ()->reefPositions.getIsAutoAligning()
-    ).and(
-      () -> {return reefPositions.getAutoAlignSide() == AutoAlignSide.Right;}
-    ).whileTrue(
-      ReefScoreCommandFactory.getNewReefCoralScoreSequence(
-        ReefPosition.Right, 
-        true,
-        () -> SelectorCommandFactory.getCoralLevelPrepCommandSelector(shoulder, elbow, elevator, wrist), 
-        SelectorCommandFactory.getCoralLevelScoreCommandSelector(shoulder, elbow, elevator, wrist, coralEndEffector),
-        SelectorCommandFactory.getCoralLevelStopScoreCommandSelector(elbow, wrist, coralEndEffector, drive),
-        () -> SelectorCommandFactory.getCoralLevelWaitUntilAtLevelCommandSelector(shoulder, elbow, elevator, wrist),
-        drive)
-    ).onFalse(new ConditionalCommand(
-      new L4ToStow(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-      new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-      () -> reefPositions.isSelected(ScoreLevel.L4)
-    ));
-
-    // Right side reef auto align superscore
-    controller.leftBumper()
-    .and(
-      ()->reefPositions.getIsAutoAligning()
-    ).and(
-      () -> {return reefPositions.getAutoAlignSide() == AutoAlignSide.Right;}
-    ).whileTrue(
-      ReefScoreCommandFactory.getNewReefCoralScoreSequence(
-        ReefPosition.Right, 
-        true,
-        () -> SelectorCommandFactory.getCoralLevelPrepCommandSelector(shoulder, elbow, elevator, wrist), 
-        SelectorCommandFactory.getCoralLevelScoreCommandSelector(shoulder, elbow, elevator, wrist, coralEndEffector),
-        SelectorCommandFactory.getCoralLevelStopScoreCommandSelector(elbow, wrist, coralEndEffector, drive),
-        () -> SelectorCommandFactory.getCoralLevelWaitUntilAtLevelCommandSelector(shoulder, elbow, elevator, wrist),
-        drive)
-        .andThen(
-          new ConditionalCommand(
-            ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Low, drive, shoulder, elbow, elevator, wrist, algaeEndEffector), 
-            ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Top, drive, shoulder, elbow, elevator, wrist, algaeEndEffector), 
-            () -> reefPositions.isSelected(DeAlgaeLevel.Low)))
-    ).onFalse(
-      new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector)
-    );
-
-    controller.leftBumper()
-    .and(
-      ()->reefPositions.getIsAutoAligning()
-    ).and(
-      () -> {return reefPositions.getAutoAlignSide() == AutoAlignSide.Left;}
-    ).whileTrue(
-      ReefScoreCommandFactory.getNewReefCoralScoreSequence(
-        ReefPosition.Left, 
-        true,
-        () -> SelectorCommandFactory.getCoralLevelPrepCommandSelector(shoulder, elbow, elevator, wrist), 
-        SelectorCommandFactory.getCoralLevelScoreCommandSelector(shoulder, elbow, elevator, wrist, coralEndEffector),
-        SelectorCommandFactory.getCoralLevelStopScoreCommandSelector(elbow, wrist, coralEndEffector, drive),
-        () -> SelectorCommandFactory.getCoralLevelWaitUntilAtLevelCommandSelector(shoulder, elbow, elevator, wrist),
-        drive)
-        .andThen(
-          new ConditionalCommand(
-            ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Low, drive, shoulder, elbow, elevator, wrist, algaeEndEffector), 
-            ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Top, drive, shoulder, elbow, elevator, wrist, algaeEndEffector), 
-            () -> reefPositions.isSelected(DeAlgaeLevel.Low)))
-    ).onFalse(
-      new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector)
-    );
-
-    // Go to conditional coral level no auto align
-    controller.rightBumper().and(()->!ReefPositionsUtil.getInstance().getIsAutoAligning())
-    .onTrue(ReefPositionsUtil.getInstance().getCoralLevelSelector(coralLevelCommands))
-    .onFalse(new ConditionalCommand(
-      new L4ToStow(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-      new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-      () -> reefPositions.isSelected(ScoreLevel.L4)));
-
-    // Conditional Confirm Coral
-    controller.rightTrigger().and(controller.rightBumper()).and(()->!ReefPositionsUtil.getInstance().getIsAutoAligning())
-      .onTrue(ReefPositionsUtil.getInstance().getCoralLevelSelector(scoreCoralLevelCommands))
-      .onFalse(ReefPositionsUtil.getInstance().getCoralLevelSelector(stopCoralLevelCommands).onlyIf(controller.rightBumper()));
-    //#endregion
-
-    // Outtake Algae
-    controller.povLeft()
-      .onTrue(
-        new OutakeAlgae(algaeEndEffector)
-      ).onFalse(
-        algaeEndEffector.getNewSetVoltsCommand(0.0)
-      );
-
-    //Outtake Coral
-    controller.povRight()
-      .onTrue(new OutakeCoral(coralEndEffector))
-      .onFalse(coralEndEffector.getNewSetVoltsCommand(0.0));
-
-    // Toggle auto align on/off
-    controller.start()
-      .onTrue(new InstantCommand(() -> {reefPositions.setIsAutoAligning(!reefPositions.getIsAutoAligning());}));
-
-    controller.back()
-      .onTrue(
-        new StationIntakeCommand(shoulder, elbow, elevator, wrist, coralEndEffector)
-      )
-      .onFalse(new StationIntakeToStow(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-
-    //#endregion
-    //#region Co-Controller
-
-    // Coral Station Intake No Auto Align
-    co_controller.leftBumper()
-      .onTrue(
-        new StationIntakeCommand(shoulder, elbow, elevator, wrist, coralEndEffector)
-      )
-      .onFalse(new StationIntakeToStow(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-
-    // Select L4
-    co_controller.y().and(controller.rightBumper().negate())
-      .onTrue(reefPositions.getNewSetScoreLevelCommand(ScoreLevel.L4));
-    // Select L3
-    co_controller.x().and(controller.rightBumper().negate())
-      .onTrue(reefPositions.getNewSetScoreLevelCommand(ScoreLevel.L3));
-    // Select L2
-    co_controller.b().and(controller.rightBumper().negate())
-      .onTrue(reefPositions.getNewSetScoreLevelCommand(ScoreLevel.L2));
-    // Select L1
-    co_controller.a().and(controller.rightBumper().negate())
-      .onTrue(reefPositions.getNewSetScoreLevelCommand(ScoreLevel.L1));
-
-    // Select L3/L4 DeAlgae
-    co_controller.rightBumper().and(controller.leftTrigger().negate())
-      .onTrue(reefPositions.getNewSetDeAlgaeLevelCommand(DeAlgaeLevel.Top));
-    // Select L2/L3 DeAlgae
-    co_controller.rightTrigger().and(controller.leftTrigger().negate())
-      .onTrue(reefPositions.getNewSetDeAlgaeLevelCommand(DeAlgaeLevel.Low));
-
-    // Back Coral Station Intake
-    // co_controller.povUp()
-    //   .and(algaeEndEffector.hasAlgaeTrigger().negate())
-    //   .onTrue(new StationIntakeReverseCommand(shoulder, elbow, elevator, wrist, coralEndEffector))
-    //   .onFalse(new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-
-    // Select Left Auto Aligning
-    co_controller.povLeft()
-      .onTrue(new InstantCommand(() ->ReefPositionsUtil.getInstance().setAutoAlignSide(ReefPositionsUtil.AutoAlignSide.Left)));
-
-    // Select Right Auto Aligning
-    co_controller.povRight()
-      .onTrue(new InstantCommand(() ->ReefPositionsUtil.getInstance().setAutoAlignSide(ReefPositionsUtil.AutoAlignSide.Right)));
-    
-    // Engage climber
-    co_controller.start().and(co_controller.back().negate())
-    .whileTrue(
-      new EngageClimber(climber, shoulder, elbow) 
-        .andThen(new WaitUntilCommand(climber.getNewLessThanAngleTrigger(78.0)))
-        .andThen(new NeutralClimber(climber, true))
-      )
-    .onFalse(new NeutralClimber(climber,true ));
-
-    // Disengage climber
-    co_controller.back().and(co_controller.start().negate())
-    .whileTrue(
-      new DisengageClimber(climber, elbow, shoulder)
-        .andThen(new WaitUntilCommand(climber.getNewGreaterThanAngleTrigger(160.0)))
-        .andThen(new NeutralClimber(climber, false))
-    )
-    .onFalse(new NeutralClimber(climber,false));
-
-    //#endregion
-  }
-
-  public void configureTestButtonBindings (){
-    // testcontroller.leftBumper().onTrue(wrist.getNewWristTurnCommand(setWristAngle)).onFalse(wrist.getNewWristTurnCommand(0));
-    // testcontroller.rightBumper().onTrue(toesies.getNewSetVoltsCommand(setToesiesVolts)).onFalse(toesies.getNewSetVoltsCommand(0));
-    // testcontroller.leftTrigger().onTrue(fingeys.getNewSetVoltsCommand(setFingeysVolts)).onFalse(fingeys.getNewSetVoltsCommand(0));
-    // testcontroller.rightTrigger().onTrue(intake.getNewSetVoltsCommand(setIntakeVolts)).onFalse(intake.getNewSetVoltsCommand(0));
-    testcontroller.a().onTrue(shoulder.getNewSetAngleCommand(setShoulderAngle)).onFalse(shoulder.getNewSetAngleCommand(90));
-    // testcontroller.b().onTrue(elbow.getNewSetAngleCommand(setElbowAngle));/* .onFalse(elbow.getNewSetAngleCommand(0))*/
-    // testcontroller.povLeft().onTrue(climber.getNewSetVoltsCommand(setClimberVolts)).onFalse(climber.getNewSetVoltsCommand(0));
-    // testcontroller.rightBumper().onTrue(new StowToL2(shoulder, elbow, wrist, coralEndEffector)).onFalse(TEMPgetStowCommand());
-    // controller.a().whileTrue(elbow.getNewSetAngleCommand(10).alongWith(new WaitCommand(0.5)).andThen(coralEndEffector.getNewSetVoltsCommand(-4))).onFalse(coralEndEffector.getNewSetVoltsCommand(0)).onFalse(TEMPgetStowCommand());
-    // testcontroller.povRight().whileTrue(new TakeCoral(shoulder, elbow, elevator, wrist, coralEndEffector)).onFalse(coralEndEffector.getNewSetVoltsCommand(0)).onFalse(TEMPgetStowCommand());
-    // controller.leftBumper().onTrue(new StowToL3(shoulder, elbow, wrist, coralEndEffector, elevator)).onFalse(TEMPgetStowCommand());
-    // testcontroller.leftTrigger().onTrue(new TakeAlgaeL2(shoulder, elbow, wrist, algaeEndEffector, elevator)).onFalse(algaeEndEffector.getNewSetVoltsCommand(4).alongWith(elevator.getNewSetDistanceCommand(0)));
-    // testcontroller.x().onTrue(new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-    // testcontroller.leftBumper().onTrue(new OutakeAlgae(algaeEndEffector)).onFalse(algaeEndEffector.getNewSetVoltsCommand(0));
-    // testcontroller.rightBumper().onTrue(new OutakeCoral(coralEndEffector)).onFalse(coralEndEffector.getNewSetVoltsCommand(0));
-    // testcontroller.y().onTrue(new TakeCoral(shoulder, elbow, elevator, wrist)).onFalse(new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-    // testcontroller.povDown().onTrue(new BargeScore(shoulder, elbow, elevator, wrist, coralEndEffector)).onFalse(new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-    // testcontroller.povLeft().whileTrue(new AutoAlignCommand((thisOneVariableWhichIDontReallyNeedSoIWillUseAnExtremelyConciseNameFor) -> {return new Pose2d(-1, 0, Rotation2d.kCCW_90deg);}, drive));
-    // testcontroller.povRight().whileTrue(new AutoAlignCommand((thisOneVariableWhichIDontReallyNeedSoIWillUseAnExtremelyConciseNameFor) -> {return new Pose2d(-1, 0, Rotation2d.kCW_90deg);}, drive));
-    // testcontroller.povUp().whileTrue(new AutoAlignCommand((thisOneVariableWhichIDontReallyNeedSoIWillUseAnExtremelyConciseNameFor) -> {return new Pose2d(0, 0, Rotation2d.kZero);}, drive));
-    // testcontroller.povDown().whileTrue(
-    //   new StowToBarge(shoulder,elbow,elevator,wrist)
-    //   .andThen(new BargeAlignCommand(drive,()->testcontroller.getLeftX()))
-    //   .andThen(new BargeScoreCommand(algaeEndEffector))
-    // ).onFalse(
-    //   new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector)
-    // );
-    // testcontroller.povUp().onTrue(
-    //   (new AlgaeStowCommand(shoulder,elbow,elevator,wrist,algaeEndEffector)
-    //     .alongWith(new ProcessorAlignCommand(drive))
-    //   )
-    //   .andThen(new OutakeAlgae(algaeEndEffector))
-    //   .andThen(new WaitCommand(0.3))
-    //   .andThen(new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector))
-    // );
-
-    //TODO AUTO ALIGN AUTO
-    //1. Scoring position reached before movement
-    //2. Outside field auto align
-    //3. Rotates right away, could hit reef
-    //4. Targeting into station
-    // testcontroller.povDown().onTrue(
-    //   reefPositions.getNewSetScoreLevelCommand(ScoreLevel.L4)
-    //   .andThen(ReefScoreCommandFactory.getNewReefCoralScoreSequence(ReefPosition.Left, true, drive, shoulder, elbow, elevator, wrist, coralEndEffector))
-    //   .andThen(
-    //     new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-    //     StationIntakeCommandFactory.getNewStationIntakeSequence(()->IntakePosition.Center, shoulder, elbow, elevator, wrist, coralEndEffector, drive),
-    //     new WaitUntilCommand(coralEndEffector.hasCoralTrigger()),
-    //     new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-    //     ReefScoreCommandFactory.getNewReefCoralScoreSequence(ReefPosition.Left, true, drive, shoulder, elbow, elevator, wrist, coralEndEffector),
-    //     new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-    //     StationIntakeCommandFactory.getNewStationIntakeSequence(()->IntakePosition.Center, shoulder, elbow, elevator, wrist, coralEndEffector, drive),
-    //     new WaitUntilCommand(coralEndEffector.hasCoralTrigger()),
-    //     new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector),
-    //     ReefScoreCommandFactory.getNewReefCoralScoreSequence(ReefPosition.Right, true, drive, shoulder, elbow, elevator, wrist, coralEndEffector),
-    //     new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector)
-    //     )
-    // );
-    // testcontroller.b().onTrue(
-    //     ReefScoreCommandFactory.getNewAlgaePluckAutoAlignSequenceCommand(DeAlgaeLevel.Low, drive, shoulder, elbow, elevator, wrist, algaeEndEffector))
-    //   .onFalse(
-    //     new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector)  
-    //   );
-
-    // SmartDashboard.putData(new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEndEffector));
-    // SmartDashboard.putData(new StowToL3(shoulder, elbow, wrist, elevator));
-    // SmartDashboard.putData(new StowToL4(shoulder, elbow, elevator, wrist));
-    // SmartDashboard.putData(new TakeAlgaeL2(shoulder, elbow, wrist, algaeEndEffector, elevator));
-    // SmartDashboard.putData(new StowCommand(shoulder, elbow, elevator, wrist, coralEndEffector, algaeEndEffector));
-  }
 
   public void configureCharacterizationButtonBindings() {
     characterizeController
@@ -748,21 +324,6 @@ public class RobotContainer {
     
   }
   
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
-  public Command getAutonomousCommand() {
-    Command autoCommand = autoCommandManager.getAutonomousCommand();
-    // Turn off updating odometry based on Apriltags
-    vision.enableUpdateOdometryBasedOnApriltags();
-    if (autoCommand != null) {
-      // Tell vision autonomous path was executed, so pose was set
-      vision.updateAutonomous();
-    }
-    return autoCommand;
-  }
 
   public void teleopInit() {
     if (!this.m_TeleopInitialized) {
@@ -795,4 +356,9 @@ public class RobotContainer {
   public void disabledPeriodic() {
     // climber.setServoTarget(Degrees.of(180.0));
   }
+
+public Command getAutonomousCommand() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getAutonomousCommand'");
+}
 }

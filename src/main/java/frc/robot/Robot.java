@@ -21,8 +21,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.commands.ReefScoreCommandFactory;
-import frc.robot.commands.StationIntakeCommandFactory;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.VirtualSubsystem;
 
@@ -112,10 +110,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void robotInit() {
-      // TODO Auto-generated method stub
-      super.robotInit();
-      ReefScoreCommandFactory.refreshAlliance();
-      StationIntakeCommandFactory.refreshAlliance();
+
   }
 
   /** This function is called periodically during all modes. */
@@ -145,8 +140,6 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically when disabled. */
   @Override
   public void disabledPeriodic() {
-    ReefScoreCommandFactory.refreshAlliance();
-    StationIntakeCommandFactory.refreshAlliance();
     robotContainer.disabledPeriodic();
   }
 
