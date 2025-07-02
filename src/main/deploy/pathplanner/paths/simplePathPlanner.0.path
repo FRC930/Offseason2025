@@ -1,0 +1,66 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 7.07,
+        "y": 5.076
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.364684497035519,
+        "y": 4.901959596960172
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.349143835616438,
+        "y": 5.106849315068493
+      },
+      "prevControl": {
+        "x": 5.472488161580172,
+        "y": 5.324303165925524
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": "simplePathPlanner.0"
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "StowToL1",
+      "waypointRelativePos": 0.6313176895306835,
+      "endWaypointRelativePos": null,
+      "command": {
+        "type": "named",
+        "data": {
+          "name": "StowToL1"
+        }
+      }
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 2.5,
+    "maxAcceleration": 2.5,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": 59.30027744918559
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 0.0
+  },
+  "useDefaultConstraints": false
+}
