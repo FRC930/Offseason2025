@@ -235,4 +235,9 @@ public class RobotState extends VirtualSubsystem {
       new Transform3d(
           new Translation3d(Inches.of(0.0), Inches.of(0.0), Inches.of(0)),
           new Rotation3d(Degrees.of(0), Degrees.of(0), Degrees.of(0)));
+
+  public void setIntakeExtenderSource(MutAngle angle) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setIntakeExtenderSource'");
+  }
 }
