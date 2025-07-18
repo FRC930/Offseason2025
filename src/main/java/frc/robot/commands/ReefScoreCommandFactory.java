@@ -187,27 +187,8 @@ public class ReefScoreCommandFactory {
      * @param algaeEE
      * @return
      */
-    public static Command getNewAlgaePluckAutoAlignSequenceCommand(
-        DeAlgaeLevel level, 
-        Drive drive,
-        ArmJoint shoulder, 
-        ArmJoint elbow, 
-        Elevator elevator, 
-        Wrist wrist, 
-        AlgaeEndEffector algaeEE
-    ) {
-        return getNewAlignToReefCommand(ReefPosition.Center, true, drive)
-            .andThen(new WaitCommand(0.5))
-            .andThen(getNewAlignToReefCommand(ReefPosition.Center, false, drive))
-            .alongWith(new ConditionalCommand(
-                new TakeAlgaeL2(shoulder, elbow, wrist, algaeEE, elevator),
-                new TakeAlgaeL3(shoulder, elbow, wrist, algaeEE, elevator),
-                () -> ReefPositionsUtil.getInstance().isSelected(DeAlgaeLevel.Low)))
-            .until(algaeEE.hasAlgaeTrigger())
-            .andThen(new WaitUntilCommand(algaeEE.hasAlgaeTrigger()))
-            .andThen(getNewAlignToReefCommand(ReefPosition.Center, true, drive))
-            .andThen(new AlgaeStowCommand(shoulder, elbow, elevator, wrist, algaeEE));
-    }
+    
+     
     
     public static Command getNewAlgaePluckAutoAlignCommand(
         Drive drive,
