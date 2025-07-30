@@ -16,7 +16,6 @@ import static edu.wpi.first.units.Units.InchesPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import edu.wpi.first.units.measure.Distance;
-import frc.robot.subsystems.arm.ArmJointIO.ArmInputs;
 import frc.robot.util.CanDef;
 import frc.robot.util.Gains;
 import frc.robot.util.PhoenixUtil;
@@ -29,7 +28,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   public TalonFX leaderMotor;
   public TalonFX followerMotor;
 
-  public ArmInputs inputs;
+
 
   private Distance m_setPoint = Distance.ofBaseUnits(0, Inches);
 
