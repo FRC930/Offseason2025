@@ -25,12 +25,9 @@ import frc.robot.util.LoggedTunableNumber;
  * </ul>
  */
 public class CoralEndEffector extends SubsystemBase {
-  public static LoggedTunableNumber CORAL_DISTANCE_THRESHOLD_HIGH = new LoggedTunableNumber("Sensors/CoralEndEffector/SENSORTHRESHOLDHIGH", 1.9);
-  public static LoggedTunableNumber CORAL_DISTANCE_THRESHOLD_LOW = new LoggedTunableNumber("Sensors/CoralEndEffector/SENSORTHRESHOLDLOW", 1.4);
 
   private CoralEndEffectorIO m_IO;
   private CoralEndEffectorInputsAutoLogged logged = new CoralEndEffectorInputsAutoLogged();
-  private Debouncer coralDebouncer = new Debouncer(0.15, DebounceType.kRising);
 
   public CoralEndEffector(CoralEndEffectorIO io) {
     m_IO = io;
@@ -57,24 +54,9 @@ public class CoralEndEffector extends SubsystemBase {
     }, this);
   }
 
-  public boolean hasCoral() {
-    return coralDebouncer.calculate(
-      logged.coralDistance.lte(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD_HIGH.get()))
-      &&
-      logged.coralDistance.gte(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD_LOW.get()))
-    );
-  }
-
-  public Trigger hasCoralTrigger() {
-    return new Trigger(this::hasCoral);
-  }
-
   @Override
   public void periodic() {
     m_IO.updateInputs(logged);
     Logger.processInputs("RobotState/CoralEndEffector", logged);
-    if(Constants.tuningMode) {
-      Logger.recordOutput("RobotState/CoralEndEffector/hasCoral", hasCoralTrigger());
-    }
   }
 }
