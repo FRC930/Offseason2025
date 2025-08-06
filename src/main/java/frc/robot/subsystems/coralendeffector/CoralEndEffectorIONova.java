@@ -16,12 +16,10 @@ import frc.robot.util.CanDef;
 
 public class CoralEndEffectorIONova implements CoralEndEffectorIO {
   private ThriftyNova motor;
-  private CANrange m_sensor;
   private Voltage m_setPoint = Volts.of(0);
 
   public CoralEndEffectorIONova(CanDef motorCanDef, CanDef sensorCanDef) {
     motor = new ThriftyNova(motorCanDef.id()).setMotorType(MotorType.MINION);
-    m_sensor = new CANrange(sensorCanDef.id(),sensorCanDef.bus());
   }
 
   @Override
@@ -30,12 +28,11 @@ public class CoralEndEffectorIONova implements CoralEndEffectorIO {
     inputs.voltageSetPoint.mut_replace(m_setPoint);
     inputs.voltage.mut_replace(motor.getVoltage(), Volts);
     inputs.supplyCurrent.mut_replace(motor.getSupplyCurrent(), Amps);
-    inputs.coralDistance.mut_replace(m_sensor.getDistance().getValue());
   }
 
   @Override
   public void setTarget(Voltage target) {
-    motor.setVoltage(target);;
+    motor.setVoltage(target);
     m_setPoint = target;
   }
 

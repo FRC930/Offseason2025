@@ -92,13 +92,9 @@ public class RobotContainer {
   private boolean m_TeleopInitialized = false;
 
   final LoggedTunableNumber setElevatorDistance = new LoggedTunableNumber("RobotState/Elevator/setDistance", 58);
-  final LoggedTunableNumber setWristAngle = new LoggedTunableNumber("RobotState/Wrist/setAngle", -90);
-  final LoggedTunableNumber setToesiesVolts = new LoggedTunableNumber("RobotState/Toesies/setVolts", 2);
-  final LoggedTunableNumber setFingeysVolts = new LoggedTunableNumber("RobotState/Fingeys/setVolts", 2);
+  final LoggedTunableNumber setFingeysVolts = new LoggedTunableNumber("RobotState/CoralEndefector/setVolts", 2);
   final LoggedTunableNumber setIntakeVolts = new LoggedTunableNumber("RobotState/Intake/setVolts", 4);
-  final LoggedTunableNumber setShoulderAngle = new LoggedTunableNumber("RobotState/Shoulder/setAngle", 0);
-  final LoggedTunableNumber setElbowAngle = new LoggedTunableNumber("RobotState/Elbow/setAngle", 0);
-  final LoggedTunableNumber setClimberVolts = new LoggedTunableNumber("RobotState/Climber/setVolts", 4);
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer(){
 
@@ -121,8 +117,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 drive::addVisionMeasurementAutoAlign,
                 new VisionIOPhotonVisionSim(limelightLeftName, robotToCameraLeft, drive::getPose),
-                new VisionIOPhotonVisionSim(limelightRightName, robotToCameraRight, drive::getPose),
-                new VisionIOPhotonVisionSim(limelightFrontName, robotToCameraFront, drive::getPose));
+                new VisionIOPhotonVisionSim(limelightRightName, robotToCameraRight, drive::getPose));
+                
 
        
         elevator = new Elevator(
@@ -165,8 +161,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 drive::addVisionMeasurementAutoAlign,
                 new VisionIOLimelight(limelightLeftName, drive::getRotation),
-                new VisionIOLimelight(limelightRightName, drive::getRotation),
-                new VisionIOLimelight(limelightFrontName, drive::getRotation));
+                new VisionIOLimelight(limelightRightName, drive::getRotation));
+                
 
       
 
@@ -180,30 +176,7 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         break;
 
-      // default:
-      //   drive =
-      //       new Drive(
-      //           new GyroIO() {},
-      //           new ModuleIO() {},
-      //           new ModuleIO() {},
-      //           new ModuleIO() {},
-      //           new ModuleIO() {});
-
-      //   // Replayed robot, disable IO implementations
-      //   // (Use same number of dummy implementations as the real robot)
-      //   vision =
-      //       new AprilTagVision(
-      //           drive::setPose, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
-
-      //   wrist = null;
-      //   elevator = null;
-      //   shoulder = null;
-      //   elbow = null;
-      //   fingeys = null;
-      //   intake = null;
-      //   algaeEndEffector = null;
-
-      //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
+     
     }
 
 
