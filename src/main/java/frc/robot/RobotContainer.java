@@ -98,7 +98,7 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer(){
 
-    CanDef.Builder rioCanBuilder = CanDef.builder().bus(CanBus.Rio);
+    CanDef.Builder drivetrain = CanDef.builder().bus(CanBus.Rio);
 
     switch (Constants.currentMode) {
       case SIM:
@@ -166,7 +166,7 @@ public class RobotContainer {
 
       
 
-        elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(13).build(),rioCanBuilder.id(14).build()));
+        elevator = new Elevator(new ElevatorIOTalonFX(DRIVETRAIN.id(13).build(),DRIVETRAIN.id(14).build()));
 
 
     
