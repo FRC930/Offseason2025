@@ -166,7 +166,7 @@ public class RobotContainer {
 
       
 
-        elevator = new Elevator(new ElevatorIOTalonFX(DRIVETRAIN.id(13).build(),DRIVETRAIN.id(14).build()));
+        elevator = new Elevator(new ElevatorIOTalonFX(drivetrain.id(13).build(),drivetrain.id(14).build()));
 
 
     
