@@ -39,6 +39,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.coralendeffector.CoralEndEffector;
+import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOSim;
+import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -75,6 +78,7 @@ public class RobotContainer {
 
   private final Elevator elevator;
 
+  private final CoralEndEffector cee;
 
 
 
@@ -142,6 +146,8 @@ public class RobotContainer {
             )
           )
         );
+
+        cee = new CoralEndEffector(new CoralEndEffectorIOSim(121));
         
         SmartDashboard.putData(drive);
       break;
@@ -173,7 +179,7 @@ public class RobotContainer {
 
 
     
-
+        cee = new CoralEndEffector(new CoralEndEffectorIOTalonFX(rioCanBuilder.id(9).build(), rioCanBuilder.id(21).build()));
     
 
         // Real robot, instantiate hardware IO implementations
@@ -204,7 +210,7 @@ public class RobotContainer {
 
       //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
     }
-    m_AutoCommandManager = new AutoCommandManager();
+    m_AutoCommandManager = new AutoCommandManager(cee);
     
     // Configure the button bindings
     configureDriverBindings();
