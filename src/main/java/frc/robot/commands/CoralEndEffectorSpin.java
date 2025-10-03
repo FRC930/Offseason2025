@@ -9,8 +9,12 @@ public class CoralEndEffectorSpin extends Command {
         this.coralEndEffector = cee;
     }
     @Override
-    public void execute(){
-this.coralEndEffector.getNewSetVoltsCommand(2);
+    public void initialize(){
+    this.coralEndEffector.getNewSetVoltsCommand(2);
 
+    }
+    @Override
+    public boolean isFinished() {
+        return true;
     }
 }

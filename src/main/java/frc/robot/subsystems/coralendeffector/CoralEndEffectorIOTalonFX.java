@@ -20,8 +20,9 @@ public class CoralEndEffectorIOTalonFX implements CoralEndEffectorIO {
   private TalonFX motor;
   private Voltage m_setPoint = Volts.of(0);
 
-  public CoralEndEffectorIOTalonFX(CanDef canbus, CanDef sensorCanDef) {
-    motor = new TalonFX(canbus.id(),canbus.bus());
+  public CoralEndEffectorIOTalonFX(CanDef motorCanDef, CanDef sensorCanDef) {
+    // TODO: Create the sensor.
+    motor = new TalonFX(motorCanDef.id(),motorCanDef.bus());
     request = new VoltageOut(0.0);
 
     configureTalons();
