@@ -91,15 +91,18 @@ public class RobotContainer {
 
   private boolean m_TeleopInitialized = false;
 
+  private AutoCommandManager m_AutoCommandManager;
+
   final LoggedTunableNumber setElevatorDistance = new LoggedTunableNumber("RobotState/Elevator/setDistance", 58);
   final LoggedTunableNumber setFingeysVolts = new LoggedTunableNumber("RobotState/CoralEndefector/setVolts", 2);
   final LoggedTunableNumber setIntakeVolts = new LoggedTunableNumber("RobotState/Intake/setVolts", 4);
-
-  /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer(){
-
-    CanDef.Builder drivetrain = CanDef.builder().bus(CanBus.Rio);
-
+  
+      /** The container for the robot. Contains subsystems, OI devices, and commands. */
+    public RobotContainer(){
+  
+      CanDef.Builder canivoreCanBuilder = CanDef.builder().bus(CanBus.CANivore);
+      CanDef.Builder rioCanBuilder = CanDef.builder().bus(CanBus.Rio);
+      
     switch (Constants.currentMode) {
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
@@ -166,7 +169,7 @@ public class RobotContainer {
 
       
 
-        elevator = new Elevator(new ElevatorIOTalonFX(drivetrain.id(13).build(),drivetrain.id(14).build()));
+        elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(13).build(),rioCanBuilder.id(14).build()));
 
 
     
@@ -176,10 +179,33 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         break;
 
-     
+      // default:
+      //   drive =
+      //       new Drive(
+      //           new GyroIO() {},
+      //           new ModuleIO() {},
+      //           new ModuleIO() {},
+      //           new ModuleIO() {},
+      //           new ModuleIO() {});
+
+      //   // Replayed robot, disable IO implementations
+      //   // (Use same number of dummy implementations as the real robot)
+      //   vision =
+      //       new AprilTagVision(
+      //           drive::setPose, drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
+      //   wrist = null;
+      //   elevator = null;
+      //   shoulder = null;
+      //   elbow = null;
+      //   fingeys = null;
+      //   intake = null;
+      //   algaeEndEffector = null;
+
+      //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
     }
-
-
+    m_AutoCommandManager = new AutoCommandManager();
+    
     // Configure the button bindings
     configureDriverBindings();
     configureCharacterizationButtonBindings();
@@ -269,7 +295,6 @@ public class RobotContainer {
   }
 
 public Command getAutonomousCommand() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getAutonomousCommand'");
-}
+    return m_AutoCommandManager.getAutonomousCommand();
+  }
 }
