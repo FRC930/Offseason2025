@@ -1,0 +1,43 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Score2Left.0"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "ScoreL1"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Stow"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Score2Left.1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Score2Left.2"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

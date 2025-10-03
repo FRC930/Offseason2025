@@ -2,6 +2,9 @@ package frc.robot;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.elevator.Elevator;
@@ -11,12 +14,12 @@ import frc.robot.subsystems.wrist.Wrist;
 public class AutoCommandManager {
 
   // Dashboard inputs
-  // private final LoggedDashboardChooser<Command> autoChooser;
+
+  private final LoggedDashboardChooser<Command> autoChooser;
 
   public AutoCommandManager() {
     configureNamedCommands();
-
-  };
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // // Set up SysId routines
     // autoChooser.addOption(
@@ -33,19 +36,14 @@ public class AutoCommandManager {
     //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     // autoChooser.addOption(
     //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-
-    // // Add Choreo Paths
-    // autoChooser.addOption("Characterization Test Path", CharacterizationTest);
-    // autoChooser.addOption("[Choreo] Straight Test", ChoreoStraightAuto);
   
+  };
 
   public Command getAutonomousCommand() {
-      return null;
-    // return autoChooser.get();
+      return autoChooser.get();
   }
 
   private void configureNamedCommands() {
-
+    
   };
 }
