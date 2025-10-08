@@ -55,6 +55,18 @@ public class Elevator extends SubsystemBase {
     return () -> loggedelevator.distance;
   }
 
+  public Supplier<Boolean> getDistanceGreaterSupplier(Distance distance) {
+    return () -> loggedelevator.distance.baseUnitMagnitude() > distance.baseUnitMagnitude();
+  }
+
+  public Supplier<Boolean> getDistanceLessSupplier(Distance distance) {
+    return () -> loggedelevator.distance.baseUnitMagnitude() < distance.baseUnitMagnitude();
+  }
+
+  public Supplier<Boolean> getDistanceAtSupplier(Distance distance, Distance error) {
+    return () -> MathUtil.isNear(distance.baseUnitMagnitude(), loggedelevator.distance.baseUnitMagnitude(), error.baseUnitMagnitude());
+  }
+
   public void setDistance(Distance target) {
     m_ElevatorIO.setTarget(target);
   }
