@@ -15,8 +15,7 @@ public class ScoreL1Command extends Command {
 
     @Override
     public void initialize(){
-        elevator.getNewSetDistanceCommand(10);
-        cee.getNewSetVoltsCommand(2);
+        elevator.getNewSetDistanceCommand(10);        
     }
 
     @Override
