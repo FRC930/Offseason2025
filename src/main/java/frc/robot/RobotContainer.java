@@ -153,7 +153,10 @@ public class RobotContainer {
           )
         );
 
-        cee = new CoralEndEffector(new CoralEndEffectorIOSim(121));
+        //TODO: uncomment simulator when 3D sim is implemented
+        //cee = new CoralEndEffector(new CoralEndEffectorIOSim(121));
+        cee = new CoralEndEffector(new CoralEndEffectorIOTalonFX(rioCanBuilder.id(9).build(), rioCanBuilder.id(21).build()));
+
         
         SmartDashboard.putData(drive);
       break;

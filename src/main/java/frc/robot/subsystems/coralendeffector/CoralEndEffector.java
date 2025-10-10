@@ -39,7 +39,7 @@ public class CoralEndEffector extends SubsystemBase {
     logged.coralDistance = Inches.mutable(100);
   }
 
-  private void setTarget(Voltage target) {
+  public void setTarget(Voltage target) {
     m_IO.setTarget(target);
   }
 
