@@ -6,11 +6,9 @@ import frc.robot.subsystems.elevator.Elevator;
 
 public class ScoreL1Command extends Command {
     private Elevator elevator;
-    private CoralEndEffector cee;
 
-    public ScoreL1Command(Elevator elevator, CoralEndEffector cee){
+    public ScoreL1Command(Elevator elevator){
         this.elevator = elevator;
-        this.cee = cee;
     }
 
     @Override

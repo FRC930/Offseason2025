@@ -2,13 +2,12 @@ package frc.robot.commands;
 
 import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 
-public class CoralEndEffectorSpin extends Command {
+public class CEEScoreSpin extends Command {
     public CoralEndEffector coralEndEffector;
-    public CoralEndEffectorSpin(CoralEndEffector cee) {
+    public CEEScoreSpin(CoralEndEffector cee) {
         this.coralEndEffector = cee;
     }
     @Override
