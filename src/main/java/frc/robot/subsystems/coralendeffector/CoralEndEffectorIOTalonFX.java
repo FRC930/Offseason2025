@@ -18,11 +18,13 @@ import frc.robot.util.PhoenixUtil;
 public class CoralEndEffectorIOTalonFX implements CoralEndEffectorIO {
   private VoltageOut request;
   private TalonFX motor;
+  private CANrange canRange;
   private Voltage m_setPoint = Volts.of(0);
 
   public CoralEndEffectorIOTalonFX(CanDef motorCanDef, CanDef sensorCanDef) {
     // TODO: Create the sensor.
     motor = new TalonFX(motorCanDef.id(),motorCanDef.bus());
+    canRange = new CANrange(sensorCanDef.id(),sensorCanDef.bus());
     request = new VoltageOut(0.0);
 
     configureTalons();
@@ -48,8 +50,8 @@ public class CoralEndEffectorIOTalonFX implements CoralEndEffectorIO {
     inputs.voltage.mut_replace(motor.getMotorVoltage().getValue());
     inputs.supplyCurrent.mut_replace(motor.getSupplyCurrent().getValue());
     inputs.torqueCurrent.mut_replace(motor.getStatorCurrent().getValue());
-    // inputs.coralDistance.mut_replace(filter.calculate(m_sensor.getDistance().getValue().in(Inches)), Inches);
-    // inputs.hasCoral = m_sensor.getDistance().getValue().lt(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD.get()));
+    inputs.coralDistance.mut_replace(canRange.getDistance().getValue().in(Inches), Inches);
+    inputs.hasCoral = canRange.getDistance().getValue().lt(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD));
   }
 
   @Override

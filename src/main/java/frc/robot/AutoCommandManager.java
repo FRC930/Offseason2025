@@ -6,7 +6,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.commands.CoralEndEffectorSpin;
+import frc.robot.commands.CEEScoreSpin;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 
 
@@ -44,6 +44,6 @@ public class AutoCommandManager {
 
   private void configureNamedCommands(CoralEndEffector cee) {
     // TODO: Implement Stow Command instead of spinning cee.
-    NamedCommands.registerCommand("Stow", new CoralEndEffectorSpin(cee));
+    NamedCommands.registerCommand("Stow", new CEEScoreSpin(cee));
   };
 }

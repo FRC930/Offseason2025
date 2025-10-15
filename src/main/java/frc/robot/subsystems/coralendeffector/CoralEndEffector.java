@@ -9,6 +9,11 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Volts;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -25,6 +30,8 @@ import frc.robot.util.LoggedTunableNumber;
  * </ul>
  */
 public class CoralEndEffector extends SubsystemBase {
+
+  public static double CORAL_DISTANCE_THRESHOLD = 5.0;
 
   private CoralEndEffectorIO m_IO;
   private CoralEndEffectorInputsAutoLogged logged = new CoralEndEffectorInputsAutoLogged();
@@ -52,6 +59,13 @@ public class CoralEndEffector extends SubsystemBase {
     return new InstantCommand(() -> {
       setTarget(Volts.of(i));
     }, this);
+  }
+  public BooleanSupplier getNewHasCoralSupplier() {
+    return () -> logged.hasCoral;
+  }
+
+  public BooleanSupplier getNewNoCoralSupplier() {
+    return () -> !logged.hasCoral;
   }
 
   @Override

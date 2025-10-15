@@ -6,17 +6,14 @@ import frc.robot.subsystems.elevator.Elevator;
 
 public class ScoreL3Command extends Command {
     private Elevator elevator;
-    private CoralEndEffector cee;
 
-    public ScoreL3Command(Elevator elevator, CoralEndEffector cee){
+    public ScoreL3Command(Elevator elevator){
         this.elevator = elevator;
-        this.cee = cee;
     }
 
     @Override
     public void initialize(){
         elevator.getNewSetDistanceCommand(30);
-        cee.getNewSetVoltsCommand(2);
     }
 
     @Override

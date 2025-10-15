@@ -5,14 +5,14 @@ import static edu.wpi.first.units.Units.Volts;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 
-public class CoralEndEffectorStop extends Command {
+public class CEEIntakeSpin extends Command {
     public CoralEndEffector coralEndEffector;
-    public CoralEndEffectorStop(CoralEndEffector cee) {
+    public CEEIntakeSpin(CoralEndEffector cee) {
         this.coralEndEffector = cee;
     }
     @Override
     public void initialize(){
-        this.coralEndEffector.setTarget(Volts.of(0));
+        this.coralEndEffector.setTarget(Volts.of(0.5));
 
     }
     @Override
