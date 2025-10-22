@@ -14,12 +14,23 @@
 package frc.robot.util;
 
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.ParentDevice;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.sim.CANcoderSimState;
+import com.ctre.phoenix6.sim.TalonFXSimState;
+
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.motorsims.SimulatedBattery;
+import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 
 public class PhoenixUtil {
   /** Attempts to run the command until no error is produced. */
@@ -37,6 +48,53 @@ public class PhoenixUtil {
     }
     return error;
   }
+
+   public static class TalonFXMotorControllerSim implements SimulatedMotorController {
+        private static int instances = 0;
+        public final int id;
+
+        private final TalonFXSimState talonFXSimState;
+
+        public TalonFXMotorControllerSim(TalonFX talonFX) {
+            this.id = instances++;
+
+            this.talonFXSimState = talonFX.getSimState();
+        }
+
+        @Override
+        public Voltage updateControlSignal(
+                Angle mechanismAngle,
+                AngularVelocity mechanismVelocity,
+                Angle encoderAngle,
+                AngularVelocity encoderVelocity) {
+            talonFXSimState.setRawRotorPosition(encoderAngle);
+            talonFXSimState.setRotorVelocity(encoderVelocity);
+            talonFXSimState.setSupplyVoltage(SimulatedBattery.getBatteryVoltage());
+            return talonFXSimState.getMotorVoltageMeasure();
+        }
+    }
+
+    public static class TalonFXMotorControllerWithRemoteCancoderSim extends TalonFXMotorControllerSim {
+        private final CANcoderSimState remoteCancoderSimState;
+
+        public TalonFXMotorControllerWithRemoteCancoderSim(TalonFX talonFX, CANcoder cancoder) {
+            super(talonFX);
+            this.remoteCancoderSimState = cancoder.getSimState();
+        }
+
+        @Override
+        public Voltage updateControlSignal(
+                Angle mechanismAngle,
+                AngularVelocity mechanismVelocity,
+                Angle encoderAngle,
+                AngularVelocity encoderVelocity) {
+            remoteCancoderSimState.setRawPosition(mechanismAngle);
+            remoteCancoderSimState.setVelocity(mechanismVelocity);
+
+            return super.updateControlSignal(mechanismAngle, mechanismVelocity, encoderAngle, encoderVelocity);
+        }
+    }
+
 
       /**
      * Get position from controller so dont have to explicitly cast applied controller (could have had runtime casting error when switch controllers)
