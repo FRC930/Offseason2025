@@ -19,7 +19,7 @@ public interface CoralEndEffectorIO {
     public MutCurrent supplyCurrent;
     public MutCurrent torqueCurrent;
     public MutDistance coralDistance;
-    public Boolean hasCoral;
+    public boolean hasCoral;
   }
 
   public void setTarget(Voltage target);
