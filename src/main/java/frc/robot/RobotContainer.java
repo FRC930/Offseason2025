@@ -244,7 +244,7 @@ public class RobotContainer {
         )
     );
     
-    controller.povDown().onTrue(new ScoreL1Command(elevator));
+    controller.povDown().onTrue(new ScoreL1Command(elevator, cee));
     controller.povRight().onTrue(new ScoreL2Command(elevator));
     controller.povLeft().onTrue(new ScoreL3Command(elevator));
     controller.povUp().onTrue(new ScoreL4Command(elevator));

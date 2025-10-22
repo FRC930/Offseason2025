@@ -9,19 +9,16 @@ import frc.robot.subsystems.elevator.Elevator;
 
 public class ScoreL1Command extends Command {
     private Elevator elevator;
+    private CoralEndEffector cee;
 
-    public ScoreL1Command(Elevator elevator){
+    public ScoreL1Command(Elevator elevator, CoralEndEffector cee){
         this.elevator = elevator;
+        this.cee = cee;
     }
 
     @Override
     public void initialize(){
-        elevator.setDistance(Distance.ofBaseUnits(32, Inches));
-    }
-
-    @Override
-    public void execute() {
-        super.execute();
+        elevator.setDistance(Inches.of(10));
     }
 
     @Override
