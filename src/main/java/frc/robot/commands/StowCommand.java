@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Inches;
+
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
@@ -16,7 +18,7 @@ public class StowCommand extends Command {
 
     @Override
     public void initialize(){
-        elevator.getNewSetDistanceCommand(0);
+        elevator.setDistance(Inches.of(0));
         cee.getNewSetVoltsCommand(0);
     }
 
