@@ -10,7 +10,7 @@ public class ScoreL3Command extends Command {
     private Elevator elevator;
     private CoralEndEffector cee;
 
-    public ScoreL3Command(Elevator elevator){
+    public ScoreL3Command(Elevator elevator, CoralEndEffector cee){
         this.elevator = elevator;
         this.cee = cee;
     }
