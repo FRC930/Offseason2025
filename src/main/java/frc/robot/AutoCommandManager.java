@@ -7,7 +7,10 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.CEEScoreSpin;
+import frc.robot.commands.ScoreL1Command;
+import frc.robot.commands.StowCommand;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
+import frc.robot.subsystems.elevator.Elevator;
 
 
 public class AutoCommandManager {
@@ -16,8 +19,8 @@ public class AutoCommandManager {
 
   private final LoggedDashboardChooser<Command> autoChooser;
 
-  public AutoCommandManager(CoralEndEffector cee) {
-    configureNamedCommands(cee);
+  public AutoCommandManager(Elevator elevator, CoralEndEffector cee) {
+    configureNamedCommands(elevator, cee);
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
     // // Set up SysId routines
@@ -42,8 +45,8 @@ public class AutoCommandManager {
       return autoChooser.get();
   }
 
-  private void configureNamedCommands(CoralEndEffector cee) {
-    // TODO: Implement Stow Command instead of spinning cee.
-    NamedCommands.registerCommand("Stow", new CEEScoreSpin(cee));
+  private void configureNamedCommands(Elevator elevator, CoralEndEffector cee) {
+    NamedCommands.registerCommand("Stow", new StowCommand(elevator, cee));
+    NamedCommands.registerCommand("ScoreL1", new ScoreL1Command(elevator, cee));
   };
 }

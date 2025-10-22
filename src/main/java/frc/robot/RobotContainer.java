@@ -135,29 +135,29 @@ public class RobotContainer {
                 
 
        
-        //elevator = new Elevator(
-          //new ElevatorIOSim(
-          // 4,
-          //  new ElevatorSim(
-          //    LinearSystemId.createElevatorSystem(
-          //      DCMotor.getKrakenX60Foc(2), 
-          //      Pounds.of(45).in(Kilograms),
-          //      Inches.of(Elevator.SPOOL_RADIUS).in(Meters), 
-          //      Elevator.REDUCTION
-          //    ), 
-          //    DCMotor.getKrakenX60Foc(2), 
-          //    Inches.of(0).in(Meters),
-          //    Inches.of(32).in(Meters),
-          //    true, 
-          //   Inches.of(0).in(Meters)
-          //  )
-         // )
-        //);
+        elevator = new Elevator(
+          new ElevatorIOSim(
+          4,
+           new ElevatorSim(
+             LinearSystemId.createElevatorSystem(
+               DCMotor.getKrakenX60Foc(2), 
+               Pounds.of(45).in(Kilograms),
+               Inches.of(Elevator.SPOOL_RADIUS).in(Meters), 
+               Elevator.REDUCTION
+             ), 
+             DCMotor.getKrakenX60Foc(2), 
+             Inches.of(0).in(Meters),
+             Inches.of(32).in(Meters),
+             true, 
+            Inches.of(0).in(Meters)
+           )
+         )
+        );
         
         //TODO: uncomment simulator when 3D sim is implemented
         //cee = new CoralEndEffector(new CoralEndEffectorIOSim(121));
         cee = new CoralEndEffector(new CoralEndEffectorIOTalonFX(rioCanBuilder.id(9).build(), rioCanBuilder.id(21).build()));
-        elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(13).build(),rioCanBuilder.id(14).build()));
+        // elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(13).build(),rioCanBuilder.id(14).build()));
 
       
 
@@ -223,7 +223,7 @@ public class RobotContainer {
 
       //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
     }
-    m_AutoCommandManager = new AutoCommandManager(cee);
+    m_AutoCommandManager = new AutoCommandManager(elevator, cee);
     
     // Configure the button bindings
     configureDriverBindings();

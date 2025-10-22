@@ -89,6 +89,8 @@ public class Elevator extends SubsystemBase {
         this);
   }
 
+  
+
   public Trigger getNewAtDistanceTrigger(Distance dist, Distance tolerance) {
     return new Trigger(() -> {
       return MathUtil.isNear(dist.baseUnitMagnitude(), loggedelevator.distance.baseUnitMagnitude(), tolerance.baseUnitMagnitude());
@@ -97,8 +99,16 @@ public class Elevator extends SubsystemBase {
 
   public Trigger getNewAtDistanceTrigger(DoubleSupplier dist, DoubleSupplier tolerance) {
     return new Trigger(() -> {
-      return MathUtil.isNear(dist.getAsDouble(), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
+      return atDistance(dist, tolerance);
     });
+  }
+
+  public boolean atDistance(DoubleSupplier tolerance) {
+    return MathUtil.isNear(loggedelevator.setPoint.in(Inches), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
+  }
+
+  public boolean atDistance(DoubleSupplier dist, DoubleSupplier tolerance) {
+    return MathUtil.isNear(dist.getAsDouble(), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
   }
 
   /**
