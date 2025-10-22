@@ -28,9 +28,6 @@ public class RobotState extends VirtualSubsystem {
   private static RobotState instance;
 
   private MutDistance elevatorHeight = Inches.mutable(0);
-  private MutAngle shoulderAngle = Degrees.mutable(0);
-  private MutAngle elbowAngle = Degrees.mutable(0);
-  private MutAngle wristTwist = Degrees.mutable(0);
 
   // private final LoggedTunableNumber elevatorHeightTune =
       // new LoggedTunableNumber("robotState/elevatorHeight", 0);
@@ -48,8 +45,6 @@ public class RobotState extends VirtualSubsystem {
 
   private final MechanismRoot2d robotBaseRoot;
   private final MechanismLigament2d baseLigament2d = new MechanismLigament2d("RobotBase", 150, 0, 24, new Color8Bit(Color.kBlue));
-
-  private MutAngle testStuff = Degrees.mutable(0);
 
   private final String key;
 
