@@ -21,19 +21,35 @@ package frc.robot;
 
 
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Pounds;
+import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
+import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
+import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
+import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
+
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeAlgaeOnFly;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.SignalLogger;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Kilograms;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Pounds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -47,24 +63,18 @@ import frc.robot.commands.ScoreL3Command;
 import frc.robot.commands.ScoreL4Command;
 import frc.robot.commands.StowCommand;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Intake.IntakeIOSim;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
-import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOSim;
 import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.vision.AprilTagVision;
-import static frc.robot.subsystems.vision.VisionConstants.limelightFrontName;
-import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
-import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraFront;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.CanDef;
@@ -88,6 +98,10 @@ public class RobotContainer {
 
   private final CoralEndEffector cee;
 
+  private SwerveDriveSimulation driveSimulation = null;
+
+  private final IntakeIOSim intakeSim;
+
 
 
  
@@ -95,6 +109,7 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController characterizeController = new CommandXboxController(2);
+  private final CommandXboxController simcontroller = new CommandXboxController(3);
 
   private final AprilTagVision vision;
 
@@ -117,22 +132,25 @@ public class RobotContainer {
       
     switch (Constants.currentMode) {
       case SIM:
-        // Sim robot, instantiate physics sim IO implementations
-        drive =
-            new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight));
+      // Sim robot, instantiate physics sim IO implementations
+      driveSimulation = new SwerveDriveSimulation(Drive.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
+      SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
+      drive = new Drive(
+        new GyroIOSim(driveSimulation.getGyroSimulation()),
+        new ModuleIOSim(driveSimulation.getModules()[0]),
+        new ModuleIOSim(driveSimulation.getModules()[1]),
+        new ModuleIOSim(driveSimulation.getModules()[2]),
+        new ModuleIOSim(driveSimulation.getModules()[3]),
+        driveSimulation::setSimulationWorldPose);
 
-        vision =
-            new AprilTagVision(
-                drive::setPose,
-                drive::addVisionMeasurement,
-                drive::addVisionMeasurementAutoAlign,
-                new VisionIOPhotonVisionSim(limelightLeftName, robotToCameraLeft, drive::getPose),
-                new VisionIOPhotonVisionSim(limelightRightName, robotToCameraRight, drive::getPose));
+      vision = new AprilTagVision(
+        drive::setPose,
+        drive::addVisionMeasurement,
+        drive::addVisionMeasurementAutoAlign,
+        new VisionIOPhotonVisionSim(
+          limelightLeftName, robotToCameraLeft, driveSimulation::getSimulatedDriveTrainPose),
+        new VisionIOPhotonVisionSim(
+          limelightRightName, robotToCameraRight, driveSimulation::getSimulatedDriveTrainPose));
                 
 
        
@@ -154,6 +172,12 @@ public class RobotContainer {
            )
          )
         );
+
+        intakeSim = new IntakeIOSim(driveSimulation);
+
+        // Sim robot, instantiate physics sim IO implementations
+                driveSimulation = new SwerveDriveSimulation(Drive.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
+                SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         
         //TODO: uncomment simulator when 3D sim is implemented
         //cee = new CoralEndEffector(new CoralEndEffectorIOSim(121));
@@ -176,7 +200,9 @@ public class RobotContainer {
           new ModuleIOTalonFX(TunerConstants.FrontLeft),
           new ModuleIOTalonFX(TunerConstants.FrontRight),
           new ModuleIOTalonFX(TunerConstants.BackLeft),
-          new ModuleIOTalonFX(TunerConstants.BackRight));
+          new ModuleIOTalonFX(TunerConstants.BackRight),
+          (robotPose) -> {});
+        
 
         vision =
             new AprilTagVision(
@@ -195,7 +221,7 @@ public class RobotContainer {
     
         cee = new CoralEndEffector(new CoralEndEffectorIOTalonFX(rioCanBuilder.id(9).build(), rioCanBuilder.id(21).build()));
     
-
+        intakeSim = new IntakeIOSim(driveSimulation);
         // Real robot, instantiate hardware IO implementations
         break;
 
@@ -261,6 +287,48 @@ public class RobotContainer {
     controller.leftTrigger().and(cee.getNewNoCoralSupplier())
       .onTrue(new CEEIntakeSpin(cee))
       .onFalse(new CEEStop(cee));
+  }
+
+  public void configureMapleSimButtonBindings() {
+    // Talk
+    // Spawns Algae
+    simcontroller.povLeft()
+      .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
+      .addGamePieceProjectile(new ReefscapeAlgaeOnFly(
+        driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
+        new Translation2d(0.4, 0),
+        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+        driveSimulation.getSimulatedDriveTrainPose().getRotation(),
+        Meters.of(1.35),
+        MetersPerSecond.of(1.5),
+        Degrees.of(-60)))
+        )
+    );
+
+    // Talk
+    // Spawns Coral
+    simcontroller.povRight()
+      .onTrue(Commands.runOnce(() -> SimulatedArena.getInstance()
+      .addGamePieceProjectile(new ReefscapeCoralOnFly(
+        driveSimulation.getSimulatedDriveTrainPose().getTranslation(),
+        new Translation2d(0.4, 0),
+        driveSimulation.getDriveTrainSimulatedChassisSpeedsFieldRelative(),
+        driveSimulation.getSimulatedDriveTrainPose().getRotation(),
+        Meters.of(1.35),
+        MetersPerSecond.of(1.5),
+        Degrees.of(-60)))
+        )
+    );
+
+    // Talk
+    simcontroller.a()
+      .onTrue(Commands.runOnce(() -> {
+        SimulatedArena.getInstance()
+        .addGamePieceProjectile(ReefscapeCoralOnFly.DropFromCoralStation(
+          ReefscapeCoralOnFly.CoralStationsSide.LEFT_STATION, DriverStation.Alliance.Red, true));
+          intakeSim.setRunning(true);
+  })
+    );
   }
 
     // Coral Station Intake Auto Align Sequence†
@@ -334,4 +402,22 @@ public class RobotContainer {
 public Command getAutonomousCommand() {
     return m_AutoCommandManager.getAutonomousCommand();
   }
+
+  public void resetSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    drive.setPose(new Pose2d(3, 3, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
+}
+
+public void updateSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    SimulatedArena.getInstance().simulationPeriodic();
+    Logger.recordOutput("FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+            "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+    Logger.recordOutput(
+            "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+}
 }

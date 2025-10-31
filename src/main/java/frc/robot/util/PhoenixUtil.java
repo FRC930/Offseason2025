@@ -24,6 +24,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
+import static edu.wpi.first.units.Units.Seconds;
 
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +51,16 @@ public class PhoenixUtil {
     return error;
   }
 
+  public static double[] getSimulationOdometryTimeStamps() {
+        final double[] odometryTimeStamps = new double[SimulatedArena.getSimulationSubTicksIn1Period()];
+        for (int i = 0; i < odometryTimeStamps.length; i++) {
+            odometryTimeStamps[i] = Timer.getFPGATimestamp()
+                    - 0.02
+                    + i * SimulatedArena.getSimulationDt().in(Seconds);
+        }
+
+        return odometryTimeStamps;
+  }
    public static class TalonFXMotorControllerSim implements SimulatedMotorController {
         private static int instances = 0;
         public final int id;
@@ -93,7 +105,7 @@ public class PhoenixUtil {
 
             return super.updateControlSignal(mechanismAngle, mechanismVelocity, encoderAngle, encoderVelocity);
         }
-    }
+      }
 
 
       /**
