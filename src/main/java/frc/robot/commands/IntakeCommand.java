@@ -1,5 +1,7 @@
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 
@@ -12,7 +14,7 @@ public class IntakeCommand extends Command {
 
     @Override
     public void initialize(){
-        cee.getNewSetVoltsCommand(2);
+        cee.setTarget(Volts.of(-0.5));
     }    
 
     @Override
