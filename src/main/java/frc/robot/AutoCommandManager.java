@@ -7,6 +7,7 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.CEEScoreSpin;
+import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ScoreL1Command;
 import frc.robot.commands.StowCommand;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
@@ -48,5 +49,6 @@ public class AutoCommandManager {
   private void configureNamedCommands(Elevator elevator, CoralEndEffector cee) {
     NamedCommands.registerCommand("Stow", new StowCommand(elevator, cee));
     NamedCommands.registerCommand("ScoreL1", new ScoreL1Command(elevator, cee));
+    NamedCommands.registerCommand("Intake", new IntakeCommand(cee));
   };
 }

@@ -45,6 +45,7 @@ import frc.robot.commands.ScoreL1Command;
 import frc.robot.commands.ScoreL2Command;
 import frc.robot.commands.ScoreL3Command;
 import frc.robot.commands.ScoreL4Command;
+import frc.robot.commands.StowCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOSim;
@@ -244,10 +245,14 @@ public class RobotContainer {
         )
     );
     
-    controller.povDown().onTrue(new ScoreL1Command(elevator, cee));
-    controller.povRight().onTrue(new ScoreL2Command(elevator));
-    controller.povLeft().onTrue(new ScoreL3Command(elevator));
-    controller.povUp().onTrue(new ScoreL4Command(elevator));
+    controller.povDown().onTrue(new ScoreL1Command(elevator, cee))
+    .onFalse(new StowCommand(elevator, cee));
+    controller.povRight().onTrue(new ScoreL2Command(elevator, cee))
+    .onFalse(new StowCommand(elevator, cee));
+    controller.povLeft().onTrue(new ScoreL3Command(elevator, cee))
+    .onFalse(new StowCommand(elevator, cee));
+    controller.povUp().onTrue(new ScoreL4Command(elevator, cee))
+    .onFalse(new StowCommand(elevator, cee));
     
     controller.rightTrigger()
       .onTrue(new CEEScoreSpin(cee))
