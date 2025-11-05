@@ -261,6 +261,11 @@ public class RobotContainer {
 
     //#region controller
 
+    // Reset gyro / odometry
+        final Runnable resetOdometry = Constants.currentMode == Constants.Mode.SIM
+                ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose())
+                : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
+
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
       DriveCommands.joystickDrive(
