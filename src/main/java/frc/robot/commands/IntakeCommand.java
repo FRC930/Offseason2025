@@ -19,6 +19,15 @@ public class IntakeCommand extends Command {
 
     @Override
     public boolean isFinished(){
-        return cee.getNewHasCoralSupplier().getAsBoolean();
+        if(cee.getNewHasCoralSupplier().getAsBoolean()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        cee.setTarget(Volts.of(0.0));
+        super.end(interrupted);
     }
 }

@@ -17,6 +17,10 @@ public class CEEScoreSpin extends Command {
     }
     @Override
     public boolean isFinished() {
-        return true;
+        if(!coralEndEffector.getNewHasCoralSupplier().getAsBoolean()) {
+            coralEndEffector.setTarget(Volts.of(0.0));
+            return true;
+        }
+        return false;
     }
 }

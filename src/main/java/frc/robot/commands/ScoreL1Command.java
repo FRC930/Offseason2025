@@ -11,11 +11,9 @@ import frc.robot.subsystems.elevator.Elevator;
 
 public class ScoreL1Command extends Command {
     private Elevator elevator;
-    private CoralEndEffector cee;
 
-    public ScoreL1Command(Elevator elevator, CoralEndEffector cee){
+    public ScoreL1Command(Elevator elevator){
         this.elevator = elevator;
-        this.cee = cee;
     }
 
     @Override
@@ -25,10 +23,6 @@ public class ScoreL1Command extends Command {
 
     @Override
     public boolean isFinished(){
-        if (elevator.atDistance(() -> 1.01)) {
-            cee.setTarget(Volts.of(2));
-            return true;
-        }
-        return false;
+        return elevator.atDistance(() -> 1.01);
     }
 }
