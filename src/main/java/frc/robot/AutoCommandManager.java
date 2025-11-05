@@ -1,15 +1,22 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Seconds;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.commands.CEEScoreSpin;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ScoreL1Command;
+import frc.robot.commands.ScoreL2Command;
+import frc.robot.commands.ScoreL3Command;
+import frc.robot.commands.ScoreL4Command;
 import frc.robot.commands.StowCommand;
+import frc.robot.commands.WaitScoreFactory;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 import frc.robot.subsystems.elevator.Elevator;
 
@@ -48,7 +55,11 @@ public class AutoCommandManager {
 
   private void configureNamedCommands(Elevator elevator, CoralEndEffector cee) {
     NamedCommands.registerCommand("Stow", new StowCommand(elevator, cee));
-    NamedCommands.registerCommand("ScoreL1", new ScoreL1Command(elevator, cee));
-    NamedCommands.registerCommand("Intake", new IntakeCommand(cee));
+    NamedCommands.registerCommand("ConfirmScore", new CEEScoreSpin(cee));
+    NamedCommands.registerCommand("ScoreL1", WaitScoreFactory.create(new ScoreL1Command(elevator), 1.0, 0.5, cee));
+    NamedCommands.registerCommand("ScoreL2", WaitScoreFactory.create(new ScoreL2Command(elevator), 1.0, 0.5, cee));
+    NamedCommands.registerCommand("ScoreL3", WaitScoreFactory.create(new ScoreL3Command(elevator), 1.0, 0.5, cee));
+    NamedCommands.registerCommand("ScoreL4", WaitScoreFactory.create(new ScoreL4Command(elevator), 1.0, 0.5, cee));
+    NamedCommands.registerCommand("Intake", new IntakeCommand(cee).withTimeout(Robot.isReal() ? 5.0 : 100.0));
   };
 }
