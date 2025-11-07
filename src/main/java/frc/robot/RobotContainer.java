@@ -148,7 +148,7 @@ public class RobotContainer {
              ), 
              DCMotor.getKrakenX60Foc(2), 
              Inches.of(0).in(Meters),
-             Inches.of(32).in(Meters),
+             Inches.of(63).in(Meters),
              true, 
             Inches.of(0).in(Meters)
            )

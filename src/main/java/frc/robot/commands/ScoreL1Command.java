@@ -18,7 +18,7 @@ public class ScoreL1Command extends Command {
 
     @Override
     public void initialize(){
-        elevator.setDistance(Inches.of(10));
+        elevator.setDistance(Inches.of(this.elevator.level1.getAsDouble()));
     }
 
     @Override
