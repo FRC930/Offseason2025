@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.RobotState;
 import frc.robot.util.LoggedTunableGainsBuilder;
+import frc.robot.util.LoggedTunableNumber;
 
 public class Elevator extends SubsystemBase {
   private ElevatorIO m_ElevatorIO;
@@ -36,7 +37,28 @@ public class Elevator extends SubsystemBase {
     5.0, 30.0, 0.0, 0.0, 
     125.0, 80.0, 0.0, 0.0, 0.0
   );
+
+  // LoggedTunableNumbers for Levels
+  public LoggedTunableNumber level1 = new LoggedTunableNumber(
+    "Elevator/Levels/L1",
+    0
+  );
   
+  public LoggedTunableNumber level2 = new LoggedTunableNumber(
+    "Elevator/Levels/L2",
+    0
+  );
+
+  public LoggedTunableNumber level3 = new LoggedTunableNumber(
+    "Elevator/Levels/L3",
+    0
+  );
+
+  public LoggedTunableNumber level4 = new LoggedTunableNumber(
+    "Elevator/Levels/L4",
+    0
+  );
+
   public Elevator(ElevatorIO elevatorIO) {
     m_ElevatorIO = elevatorIO;
     loggedelevator.distance = Inches.mutable(0);
