@@ -235,7 +235,7 @@ public class RobotContainer {
       configureDriverBindings();
       configureCharacterizationButtonBindings();
     }
-    
+    // update build.gradle to run on test harness/roborio 1 remove java args
     private void turnOnLeds() {
      // Example usage of a CANdle
       CANdle candle = new CANdle(0); // creates a new CANdle with ID 0
