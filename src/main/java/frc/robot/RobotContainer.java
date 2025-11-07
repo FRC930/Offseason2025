@@ -63,7 +63,7 @@ import frc.robot.commands.ScoreL3Command;
 import frc.robot.commands.ScoreL4Command;
 import frc.robot.commands.StowCommand;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.Intake.IntakeIOSim;
+import frc.robot.subsystems.IntakeIOSim;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
