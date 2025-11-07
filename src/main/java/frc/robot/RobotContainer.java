@@ -23,6 +23,11 @@ package frc.robot;
 
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix.led.CANdle;
+import com.ctre.phoenix.led.CANdle.LEDStripType;
+import com.ctre.phoenix.led.CANdleConfiguration;
+import com.ctre.phoenix.led.FireAnimation;
+import com.ctre.phoenix.led.RainbowAnimation;
 import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -225,13 +230,33 @@ public class RobotContainer {
       //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
     }
     m_AutoCommandManager = new AutoCommandManager(elevator, cee);
+    turnOnLeds();
+      // Configure the button bindings
+      configureDriverBindings();
+      configureCharacterizationButtonBindings();
+    }
     
-    // Configure the button bindings
-    configureDriverBindings();
-    configureCharacterizationButtonBindings();
-  }
+    private void turnOnLeds() {
+     // Example usage of a CANdle
+      CANdle candle = new CANdle(0); // creates a new CANdle with ID 0
 
-  public void configureDriverBindings() {
+      CANdleConfiguration config = new CANdleConfiguration();
+      config.stripType = LEDStripType.RGB; // set the strip type to RGB
+      config.brightnessScalar = 0.5; // dim the LEDs to half brightness
+      candle.configAllSettings(config);
+
+      candle.setLEDs(255, 255, 255); // set the CANdle LEDs to white
+
+      // create a rainbow animation:
+      // - max brightness
+      // - half speed
+      // - 64 LEDs
+      RainbowAnimation rainbowAnim = new RainbowAnimation(0.5, 3, 8, false, 0);
+      FireAnimation fireAnim = new FireAnimation(0.5,0.5,8,0,0);
+      candle.animate(fireAnim);
+    }
+  
+    public void configureDriverBindings() {
 
     //#region controller
 
