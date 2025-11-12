@@ -23,4 +23,9 @@ public class CEEIntakeSpin extends Command {
         }
         return false;
     }
+    @Override
+    public void end(boolean interrupted) {
+        coralEndEffector.setTarget(Volts.of(0.0));
+        super.end(interrupted);
+    }
 }
