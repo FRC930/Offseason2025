@@ -21,23 +21,34 @@ package frc.robot;
 
 
 
-import org.littletonrobotics.junction.Logger;
-
-import com.ctre.phoenix.led.CANdle;
-import com.ctre.phoenix.led.CANdle.LEDStripType;
-import com.ctre.phoenix.led.CANdleConfiguration;
-import com.ctre.phoenix.led.FireAnimation;
-import com.ctre.phoenix.led.RainbowAnimation;
-import com.ctre.phoenix6.SignalLogger;
-
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Kilograms;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
+import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
+import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
+import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
+import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
+
+import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.configs.CANdleConfiguration;
+import com.ctre.phoenix6.controls.ColorFlowAnimation;
+import com.ctre.phoenix6.controls.EmptyAnimation;
+import com.ctre.phoenix6.controls.FireAnimation;
+import com.ctre.phoenix6.controls.LarsonAnimation;
+import com.ctre.phoenix6.controls.RainbowAnimation;
+import com.ctre.phoenix6.controls.SolidColor;
+import com.ctre.phoenix6.hardware.CANdle;
+import com.ctre.phoenix6.signals.RGBWColor;
+import com.ctre.phoenix6.signals.StatusLedWhenActiveValue;
+import com.ctre.phoenix6.signals.StripTypeValue;
+
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -53,7 +64,6 @@ import frc.robot.commands.ScoreL4Command;
 import frc.robot.commands.StowCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
-import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOSim;
 import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -64,12 +74,6 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.vision.AprilTagVision;
-import static frc.robot.subsystems.vision.VisionConstants.limelightFrontName;
-import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
-import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraFront;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.CanDef;
@@ -103,6 +107,23 @@ public class RobotContainer {
 
   private final AprilTagVision vision;
 
+  /* color can be constructed from RGBW, a WPILib Color/Color8Bit, HSV, or hex */
+  private static final RGBWColor kGreen = new RGBWColor(0, 217, 0, 0);
+  private static final RGBWColor kWhite = new RGBWColor(Color.kWhite).scaleBrightness(0.5);
+  private static final RGBWColor kViolet = RGBWColor.fromHSV(Degrees.of(270), 0.9, 0.8);
+  private static final RGBWColor kRed = RGBWColor.fromHex("#D9000000").orElseThrow();
+
+  /*
+  * Start and end index for LED animations.
+  * 0-7 are onboard, 8-399 are an external strip.
+  * CANdle supports 8 animation slots (0-7).
+  */
+  private static final int kSlot0StartIdx = 0;
+  private static final int kSlot0EndIdx = 7;
+
+  
+
+  private final CANdle m_candle = new CANdle(1, "rio");
   
 
 
@@ -237,23 +258,28 @@ public class RobotContainer {
     }
     // update build.gradle to run on test harness/roborio 1 remove java args
     private void turnOnLeds() {
-     // Example usage of a CANdle
-      CANdle candle = new CANdle(0); // creates a new CANdle with ID 0
+      /* Configure CANdle */
+        CANdleConfiguration cfg = new CANdleConfiguration();
+        /* set the LED strip type and brightness */
+        cfg.LED.StripType = StripTypeValue.GRB;
+        cfg.LED.BrightnessScalar = 0.5;
+        /* disable status LED when being controlled */
+        //cfg.CANdleFeatures.StatusLedWhenActive = StatusLedWhenActiveValue.Disabled;
 
-      CANdleConfiguration config = new CANdleConfiguration();
-      config.stripType = LEDStripType.RGB; // set the strip type to RGB
-      config.brightnessScalar = 0.5; // dim the LEDs to half brightness
-      candle.configAllSettings(config);
+        m_candle.getConfigurator().apply(cfg);
 
-      candle.setLEDs(255, 255, 255); // set the CANdle LEDs to white
+        /* clear all previous animations */
+        for (int i = 0; i < 8; ++i) {
+            m_candle.setControl(new EmptyAnimation(i));
+        }
+        /* set the onboard LEDs to a solid color */
+        m_candle.setControl(new SolidColor(0, 3).withColor(kGreen));
+        m_candle.setControl(new SolidColor(4, 7).withColor(kWhite));
+        m_candle.setControl(
+          new RainbowAnimation(kSlot0StartIdx, kSlot0EndIdx).withSlot(0)
+        );
+        
 
-      // create a rainbow animation:
-      // - max brightness
-      // - half speed
-      // - 64 LEDs
-      RainbowAnimation rainbowAnim = new RainbowAnimation(0.5, 3, 8, false, 0);
-      FireAnimation fireAnim = new FireAnimation(0.5,0.5,8,0,0);
-      candle.animate(fireAnim);
     }
   
     public void configureDriverBindings() {
