@@ -49,7 +49,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     cfg.CurrentLimits.StatorCurrentLimitEnable = true;
     cfg.CurrentLimits.SupplyCurrentLimit = 30;
     cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
-    cfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+    cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     cfg.Feedback.SensorToMechanismRatio = Elevator.REDUCTION;
 
