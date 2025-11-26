@@ -189,7 +189,7 @@ public class RobotContainer {
 
       
 
-        elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(13).build(),rioCanBuilder.id(14).build()));
+        elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(12).build(),rioCanBuilder.id(11).build()));
 
 
     
