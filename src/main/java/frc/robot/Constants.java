@@ -29,7 +29,7 @@ public final class Constants {
 
 
   //A flag in case our practice field breaks the logged tunable numbers. Forces loggedtunablnumbers to be enabled
-  public static final boolean overrideEnableLoggedTunableNumbers = false;
+  public static final boolean overrideEnableLoggedTunableNumbers = true;
   
   public static final boolean isDSConnected = DriverStation.waitForDsConnection(1);
   public static final boolean isInElim = DriverStation.getMatchType() == MatchType.Elimination;
