@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.CEEIntakeSpin;
@@ -95,7 +96,7 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController characterizeController = new CommandXboxController(2);
-
+  private final CommandXboxController testController = new CommandXboxController(3);
   private final AprilTagVision vision;
 
   
@@ -229,9 +230,16 @@ public class RobotContainer {
     // Configure the button bindings
     configureDriverBindings();
     configureCharacterizationButtonBindings();
-  }
+    configureTestBindings();
+      }
+    
+      private void configureTestBindings() {
+            
+        testController.a().onTrue(new InstantCommand(()->elevator.setDistance(Inches.of(0.0))));
 
-  public void configureDriverBindings() {
+      }
+    
+      public void configureDriverBindings() {
 
     //#region controller
 
