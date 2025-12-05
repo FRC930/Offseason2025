@@ -33,9 +33,9 @@ public class Elevator extends SubsystemBase {
 
   public LoggedTunableGainsBuilder tunableGains = new LoggedTunableGainsBuilder(
     "Gains/Elevator/", 
-    45.0, 0, 10.0, 
-    5.0, 30.0, 0.0, 0.0, 
-    125.0, 80.0, 0.0, 0.0, 0.0
+    20.0, 0, 0.0, 
+    5.0, 40.0, 0.0, 0.0, 
+    75.0, 0.0, 0.0, 0.0, 0.0
   );
 
   // LoggedTunableNumbers for Levels
