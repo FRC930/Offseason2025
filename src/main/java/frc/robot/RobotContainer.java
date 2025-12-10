@@ -236,6 +236,10 @@ public class RobotContainer {
       private void configureTestBindings() {
             
         testController.a().onTrue(new InstantCommand(()->elevator.setDistance(Inches.of(10.0))));
+        testController.b().onTrue(new InstantCommand(()->elevator.setDistance(Inches.of(5.0))));
+        testController.x().onTrue(new InstantCommand(()->elevator.setDistance(Inches.of(15.0))));
+        testController.y().onTrue(new InstantCommand(()->elevator.setDistance(Inches.of(20.0))));
+        testController.povUp().onTrue(new InstantCommand(()->elevator.setDistance(Inches.of(55.0))));
 
       }
     

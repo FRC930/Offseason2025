@@ -27,15 +27,15 @@ public class Elevator extends SubsystemBase {
 
   public static final double SPOOL_RADIUS = 1.751 / 2.0;
 
-  public static final double INCHES_PER_ROT = (2.0 * Math.PI * SPOOL_RADIUS);
+  public static final double INCHES_PER_ROT = (2.0 * (2.0 * Math.PI * SPOOL_RADIUS)); //Multiplied by 2 because its a 2 stage cascading elevator
   
   public static final double REDUCTION = (11.0/4.0);
 
   public LoggedTunableGainsBuilder tunableGains = new LoggedTunableGainsBuilder(
     "Gains/Elevator/", 
-    20.0, 0, 0.0, 
-    5.0, 40.0, 0.0, 0.0, 
-    75.0, 0.0, 0.0, 0.0, 0.0
+    400.0, 0, 25.0, 
+    0.0, 30.0, 0.0, 0.0, 
+    75.0, 30.0, 0.0, 0.0, 0.0
   );
 
   // LoggedTunableNumbers for Levels
