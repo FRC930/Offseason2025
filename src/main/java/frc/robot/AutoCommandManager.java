@@ -9,7 +9,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.commands.CEEScoreSpin;
 import frc.robot.commands.IntakeCommand;
 import frc.robot.commands.ScoreL1Command;
 import frc.robot.commands.ScoreL2Command;
@@ -55,7 +54,7 @@ public class AutoCommandManager {
 
   private void configureNamedCommands(Elevator elevator, CoralEndEffector cee) {
     NamedCommands.registerCommand("Stow", new StowCommand(elevator, cee));
-    NamedCommands.registerCommand("ConfirmScore", new CEEScoreSpin(cee));
+    NamedCommands.registerCommand("ConfirmScore", cee.setStateScoring().until(cee.hasCoral().negate()));
     NamedCommands.registerCommand("ScoreL1", WaitScoreFactory.create(new ScoreL1Command(elevator), 1.0, 0.5, cee));
     NamedCommands.registerCommand("ScoreL2", WaitScoreFactory.create(new ScoreL2Command(elevator), 1.0, 0.5, cee));
     NamedCommands.registerCommand("ScoreL3", WaitScoreFactory.create(new ScoreL3Command(elevator), 1.0, 0.5, cee));

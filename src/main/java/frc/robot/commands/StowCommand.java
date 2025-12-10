@@ -19,7 +19,7 @@ public class StowCommand extends Command {
     @Override
     public void initialize(){
         elevator.setDistance(Inches.of(0));
-        cee.getNewSetVoltsCommand(0);
+        cee.setStateIdle();
     }
 
     @Override

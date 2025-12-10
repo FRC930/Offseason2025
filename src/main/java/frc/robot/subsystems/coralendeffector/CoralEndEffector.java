@@ -35,6 +35,7 @@ public class CoralEndEffector extends SubsystemBase {
 
   private CoralEndEffectorIO m_IO;
   private CoralEndEffectorInputsAutoLogged logged = new CoralEndEffectorInputsAutoLogged();
+  private CoralEndEffectorState m_state = CoralEndEffectorState.IDLE;
 
   public CoralEndEffector(CoralEndEffectorIO io) {
     m_IO = io;
@@ -50,27 +51,47 @@ public class CoralEndEffector extends SubsystemBase {
     m_IO.setTarget(target);
   }
 
-  public Command getNewSetVoltsCommand(LoggedTunableNumber volts) {
-    return new InstantCommand(() -> {
-      setTarget(Volts.of((volts.get())));
-    }, this);
-  }
-  public Command getNewSetVoltsCommand(double i) {
-    return new InstantCommand(() -> {
-      setTarget(Volts.of(i));
-    }, this);
-  }
-  public BooleanSupplier getNewHasCoralSupplier() {
-    return () -> logged.hasCoral;
-  }
-
-  public BooleanSupplier getNewNoCoralSupplier() {
-    return () -> !logged.hasCoral;
-  }
-
   @Override
   public void periodic() {
     m_IO.updateInputs(logged);
     Logger.processInputs("RobotState/CoralEndEffector", logged);
+    switch(m_state) {
+      case INTAKING -> {
+        if (logged.hasCoral) {
+          m_state = CoralEndEffectorState.IDLE;
+        }
+      }
+      default -> {}
+    }
+    setTarget(m_state.getVoltage());
+  }
+
+  public Command setStateIntake() {
+    return startEnd(
+      () -> this.m_state = CoralEndEffectorState.INTAKING,
+      () -> this.m_state = CoralEndEffectorState.IDLE
+    );
+  }
+  
+  public Command setStateScoring() {
+    return startEnd(
+      () -> this.m_state = CoralEndEffectorState.SCORING,
+      () -> this.m_state = CoralEndEffectorState.IDLE
+    );
+  }
+
+  public Trigger hasCoral() {
+    return new Trigger(() -> logged.hasCoral);
+  }
+
+  public Command setStateEjecting() {
+    return startEnd(
+      () -> this.m_state = CoralEndEffectorState.EJECTING,
+      () -> this.m_state = CoralEndEffectorState.IDLE
+    );
+  }
+
+  public Command setStateIdle() {
+    return new InstantCommand(() -> this.m_state = CoralEndEffectorState.IDLE);
   }
 }

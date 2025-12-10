@@ -19,7 +19,7 @@ public class IntakeCommand extends Command {
 
     @Override
     public boolean isFinished(){
-        if(cee.getNewHasCoralSupplier().getAsBoolean()) {
+        if(cee.hasCoral().getAsBoolean()) {
             return true;
         }
         return false;
