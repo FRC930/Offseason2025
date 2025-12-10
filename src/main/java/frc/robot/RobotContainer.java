@@ -38,9 +38,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.commands.CEEIntakeSpin;
-import frc.robot.commands.CEEScoreSpin;
-import frc.robot.commands.CEEStop;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ScoreL1Command;
 import frc.robot.commands.ScoreL2Command;
@@ -266,13 +263,11 @@ public class RobotContainer {
     controller.povUp().onTrue(new ScoreL4Command(elevator))
     .onFalse(new StowCommand(elevator, cee));
     
-    controller.rightTrigger()
-      .onTrue(new CEEScoreSpin(cee))
-      .onFalse(new CEEStop(cee));
+    controller.rightTrigger().and(cee.hasCoral()).whileTrue(cee.setStateScoring());
     
-    controller.leftTrigger().and(cee.getNewNoCoralSupplier())
-      .onTrue(new CEEIntakeSpin(cee))
-      .onFalse(new CEEStop(cee));
+    controller.leftTrigger().whileTrue(cee.setStateIntake());
+
+    controller.rightBumper().whileTrue(cee.setStateEjecting());
   }
 
     // Coral Station Intake Auto Align Sequence†
