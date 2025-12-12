@@ -40,23 +40,23 @@ public class Elevator extends SubsystemBase {
 
   // LoggedTunableNumbers for Levels
   public LoggedTunableNumber level1 = new LoggedTunableNumber(
-    "Elevator/Levels/L1",
-    0
+    "Elevator/Levels/L1",8.0
+    
   );
   
   public LoggedTunableNumber level2 = new LoggedTunableNumber(
-    "Elevator/Levels/L2",
-    0
+    "Elevator/Levels/L2",18.8
+    
   );
 
   public LoggedTunableNumber level3 = new LoggedTunableNumber(
     "Elevator/Levels/L3",
-    0
+    35.0
   );
 
   public LoggedTunableNumber level4 = new LoggedTunableNumber(
     "Elevator/Levels/L4",
-    0
+    57.0
   );
 
   public Elevator(ElevatorIO elevatorIO) {
