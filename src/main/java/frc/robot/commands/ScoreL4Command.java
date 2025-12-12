@@ -1,0 +1,26 @@
+package frc.robot.commands;
+
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Volts;
+
+import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.coralendeffector.CoralEndEffector;
+import frc.robot.subsystems.elevator.Elevator;
+
+public class ScoreL4Command extends Command {
+    private Elevator elevator;
+
+    public ScoreL4Command(Elevator elevator){
+        this.elevator = elevator;
+    }
+
+    @Override
+    public void initialize(){
+        elevator.setDistance(Inches.of(this.elevator.level4.getAsDouble()));
+    }
+
+    @Override
+    public boolean isFinished(){
+        return elevator.atDistance(() -> 1.01);
+    }
+}

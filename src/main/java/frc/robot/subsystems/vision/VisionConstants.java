@@ -32,26 +32,30 @@ public class VisionConstants {
   // (Not used by Limelight, configure in web UI instead)
   public static Transform3d robotToCameraLeft =
   new Transform3d(
-    //IP 10.9.30.16
+    //IP 10.9.30.26
     //back Left (on endgame) values on robot, 
-    // LL Forward -0.236449(-9.309 in y val from cad), LL Right -0.190119(-7.485 in x val from cad), LL up 0.317932(-12.517 in), LL Roll 0, LL Pitch -10, LL Yaw -172.5
+    // LL Forward -0.236571(-9.3138 in y val from cad), 
+    // LL Right -0.226543(-8.919 in x val from cad),
+    // LL up 0.578028(-22.757 in), LL Roll 0, LL Pitch -10, LL Yaw -175
     //LL RIGHT IS -, IN CODE(y value) IT'S +
-      -0.236449,
-      0.190119, 
+      -0.236571,
+      0.226543, 
       0.317932,
       //LL PITCH IS +, IN CODE IT'S -
-      new Rotation3d(0.0, Math.toRadians(-10.0), Math.toRadians(-172.5)));
+      new Rotation3d(0.0, Math.toRadians(-10.0), Math.toRadians(-175)));
 public static Transform3d robotToCameraRight =
   new Transform3d(
-    // 10.9.30.15
+    // 10.9.30.25
     //back right values on robot, 
-    // LL Forward -0.236449(9.309in y val from cad), LL Right 0.190119(-7.485in x val from cad), LL up 0.318008(12.52in), LL Roll 0, LL Pitch 10, LL Yaw 172.5.
+    // LL Forward -0.236571(-9.3138in y val from cad),
+    // LL Right 0.226543(-8.919in x val from cad),
+    // LL up 0.578028(22.757in), LL Roll 0, LL Pitch 10, LL Yaw 175.
     //LL RIGHT IS +, IN CODE(y value) IT'S -
-      -0.236449,
-      -0.190119,
-      0.318008,
+      -0.236571,
+      -0.226543,
+      0.578028,
       //LL PITCH IS +, IN CODE IT'S -
-      new Rotation3d(0.0, Math.toRadians(-10.0), Math.toRadians(172.5)));
+      new Rotation3d(0.0, Math.toRadians(-10.0), Math.toRadians(175)));
 
       // front cam values on robot, 
       // LL Forward 0.391, LL Right 0.0, LL up 0.198, LL Roll 0.0, LL Pitch 0.0, LL Yaw 0.0.

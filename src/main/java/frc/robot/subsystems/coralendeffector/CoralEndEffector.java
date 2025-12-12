@@ -9,6 +9,11 @@ import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Volts;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -25,12 +30,12 @@ import frc.robot.util.LoggedTunableNumber;
  * </ul>
  */
 public class CoralEndEffector extends SubsystemBase {
-  public static LoggedTunableNumber CORAL_DISTANCE_THRESHOLD_HIGH = new LoggedTunableNumber("Sensors/CoralEndEffector/SENSORTHRESHOLDHIGH", 1.9);
-  public static LoggedTunableNumber CORAL_DISTANCE_THRESHOLD_LOW = new LoggedTunableNumber("Sensors/CoralEndEffector/SENSORTHRESHOLDLOW", 1.4);
+
+  public static double CORAL_DISTANCE_THRESHOLD = 5.0;
 
   private CoralEndEffectorIO m_IO;
   private CoralEndEffectorInputsAutoLogged logged = new CoralEndEffectorInputsAutoLogged();
-  private Debouncer coralDebouncer = new Debouncer(0.15, DebounceType.kRising);
+  private CoralEndEffectorState m_state = CoralEndEffectorState.IDLE;
 
   public CoralEndEffector(CoralEndEffectorIO io) {
     m_IO = io;
@@ -42,39 +47,51 @@ public class CoralEndEffector extends SubsystemBase {
     logged.coralDistance = Inches.mutable(100);
   }
 
-  private void setTarget(Voltage target) {
+  public void setTarget(Voltage target) {
     m_IO.setTarget(target);
-  }
-
-  public Command getNewSetVoltsCommand(LoggedTunableNumber volts) {
-    return new InstantCommand(() -> {
-      setTarget(Volts.of((volts.get())));
-    }, this);
-  }
-  public Command getNewSetVoltsCommand(double i) {
-    return new InstantCommand(() -> {
-      setTarget(Volts.of(i));
-    }, this);
-  }
-
-  public boolean hasCoral() {
-    return coralDebouncer.calculate(
-      logged.coralDistance.lte(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD_HIGH.get()))
-      &&
-      logged.coralDistance.gte(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD_LOW.get()))
-    );
-  }
-
-  public Trigger hasCoralTrigger() {
-    return new Trigger(this::hasCoral);
   }
 
   @Override
   public void periodic() {
     m_IO.updateInputs(logged);
     Logger.processInputs("RobotState/CoralEndEffector", logged);
-    if(Constants.tuningMode) {
-      Logger.recordOutput("RobotState/CoralEndEffector/hasCoral", hasCoralTrigger());
+    switch(m_state) {
+      case INTAKING -> {
+        if (logged.hasCoral) {
+          m_state = CoralEndEffectorState.IDLE;
+        }
+      }
+      default -> {}
     }
+    setTarget(m_state.getVoltage());
+  }
+
+  public Command setStateIntake() {
+    return startEnd(
+      () -> this.m_state = CoralEndEffectorState.INTAKING,
+      () -> this.m_state = CoralEndEffectorState.IDLE
+    );
+  }
+  
+  public Command setStateScoring() {
+    return startEnd(
+      () -> this.m_state = CoralEndEffectorState.SCORING,
+      () -> this.m_state = CoralEndEffectorState.IDLE
+    );
+  }
+
+  public Trigger hasCoral() {
+    return new Trigger(() -> logged.hasCoral);
+  }
+
+  public Command setStateEjecting() {
+    return startEnd(
+      () -> this.m_state = CoralEndEffectorState.EJECTING,
+      () -> this.m_state = CoralEndEffectorState.IDLE
+    );
+  }
+
+  public Command setStateIdle() {
+    return new InstantCommand(() -> this.m_state = CoralEndEffectorState.IDLE);
   }
 }

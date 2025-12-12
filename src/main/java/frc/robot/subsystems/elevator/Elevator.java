@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.RobotState;
 import frc.robot.util.LoggedTunableGainsBuilder;
+import frc.robot.util.LoggedTunableNumber;
 
 public class Elevator extends SubsystemBase {
   private ElevatorIO m_ElevatorIO;
@@ -26,17 +27,38 @@ public class Elevator extends SubsystemBase {
 
   public static final double SPOOL_RADIUS = 1.751 / 2.0;
 
-  public static final double INCHES_PER_ROT = (2.0 * Math.PI * SPOOL_RADIUS);
+  public static final double INCHES_PER_ROT = (2.0 * (2.0 * Math.PI * SPOOL_RADIUS)); //Multiplied by 2 because its a 2 stage cascading elevator
   
-  public static final double REDUCTION = (4.0/1.0);
+  public static final double REDUCTION = (11.0/4.0);
 
   public LoggedTunableGainsBuilder tunableGains = new LoggedTunableGainsBuilder(
     "Gains/Elevator/", 
-    45.0, 0, 10.0, 
-    5.0, 30.0, 0.0, 0.0, 
-    125.0, 80.0, 0.0, 0.0, 0.0
+    400.0, 0, 25.0, 
+    0.0, 30.0, 0.0, 0.0, 
+    75.0, 30.0, 0.0, 0.0, 0.0
+  );
+
+  // LoggedTunableNumbers for Levels
+  public LoggedTunableNumber level1 = new LoggedTunableNumber(
+    "Elevator/Levels/L1",8.0
+    
   );
   
+  public LoggedTunableNumber level2 = new LoggedTunableNumber(
+    "Elevator/Levels/L2",18.8
+    
+  );
+
+  public LoggedTunableNumber level3 = new LoggedTunableNumber(
+    "Elevator/Levels/L3",
+    35.0
+  );
+
+  public LoggedTunableNumber level4 = new LoggedTunableNumber(
+    "Elevator/Levels/L4",
+    57.0
+  );
+
   public Elevator(ElevatorIO elevatorIO) {
     m_ElevatorIO = elevatorIO;
     loggedelevator.distance = Inches.mutable(0);
@@ -53,6 +75,18 @@ public class Elevator extends SubsystemBase {
 
   public Supplier<Distance> getDistanceExtendedSupplier() {
     return () -> loggedelevator.distance;
+  }
+
+  public Supplier<Boolean> getDistanceGreaterSupplier(Distance distance) {
+    return () -> loggedelevator.distance.baseUnitMagnitude() > distance.baseUnitMagnitude();
+  }
+
+  public Supplier<Boolean> getDistanceLessSupplier(Distance distance) {
+    return () -> loggedelevator.distance.baseUnitMagnitude() < distance.baseUnitMagnitude();
+  }
+
+  public Supplier<Boolean> getDistanceAtSupplier(Distance distance, Distance error) {
+    return () -> MathUtil.isNear(distance.baseUnitMagnitude(), loggedelevator.distance.baseUnitMagnitude(), error.baseUnitMagnitude());
   }
 
   public void setDistance(Distance target) {
@@ -77,6 +111,8 @@ public class Elevator extends SubsystemBase {
         this);
   }
 
+  
+
   public Trigger getNewAtDistanceTrigger(Distance dist, Distance tolerance) {
     return new Trigger(() -> {
       return MathUtil.isNear(dist.baseUnitMagnitude(), loggedelevator.distance.baseUnitMagnitude(), tolerance.baseUnitMagnitude());
@@ -85,8 +121,16 @@ public class Elevator extends SubsystemBase {
 
   public Trigger getNewAtDistanceTrigger(DoubleSupplier dist, DoubleSupplier tolerance) {
     return new Trigger(() -> {
-      return MathUtil.isNear(dist.getAsDouble(), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
+      return atDistance(dist, tolerance);
     });
+  }
+
+  public boolean atDistance(DoubleSupplier tolerance) {
+    return MathUtil.isNear(loggedelevator.setPoint.in(Inches), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
+  }
+
+  public boolean atDistance(DoubleSupplier dist, DoubleSupplier tolerance) {
+    return MathUtil.isNear(dist.getAsDouble(), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
   }
 
   /**

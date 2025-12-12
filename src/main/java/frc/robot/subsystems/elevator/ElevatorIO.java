@@ -26,7 +26,7 @@ public interface ElevatorIO {
 
   public void stop();
 
-  public void setTarget(Distance meters);
+  public void setTarget(Distance distance);
 
   public void setGains(Gains gains);
 }
