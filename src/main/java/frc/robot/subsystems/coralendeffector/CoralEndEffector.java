@@ -56,6 +56,7 @@ public class CoralEndEffector extends SubsystemBase {
   public void periodic() {
     m_IO.updateInputs(logged);
     Logger.processInputs("RobotState/CoralEndEffector", logged);
+    Logger.recordOutput("RobotState/CoralEndEffector/CurrentState", m_state.getLabel());
     switch(m_state) {
       case INTAKING -> {
         if (logged.hasCoral) {
