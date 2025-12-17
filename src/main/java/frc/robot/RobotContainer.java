@@ -38,6 +38,20 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
+import gg.questnav.questnav.PoseFrame;
+import gg.questnav.questnav.QuestNav;
+import org.littletonrobotics.junction.Logger;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ScoreL1Command;
 import frc.robot.commands.ScoreL2Command;
@@ -57,13 +71,14 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.vision.AprilTagVision;
+import frc.robot.subsystems.vision.VisionIOLimelight;
+
 import static frc.robot.subsystems.vision.VisionConstants.limelightFrontName;
 import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
 import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCameraFront;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
-import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.CanDef;
 import frc.robot.util.CanDef.CanBus;
@@ -100,6 +115,20 @@ public class RobotContainer {
 
 
   private boolean m_TeleopInitialized = false;
+
+  private QuestNav questNav = new QuestNav();
+  private Matrix<N3, N1> QUESTNAV_STD_DEVS =
+      VecBuilder.fill(
+          0.02, // Trust down to 2cm in X direction
+          0.02, // Trust down to 2cm in Y direction
+          0.035 // Trust down to 2 degrees rotational
+          );
+
+  private final Transform3d ROBOT_TO_QUEST =
+      new Transform3d(
+          Units.inchesToMeters(0.5), Units.inchesToMeters(9.207), Units.inchesToMeters(0.0), new Rotation3d(90.0, 0.0, 0.0));
+
+  private int questDebug = 0;
 
   private AutoCommandManager m_AutoCommandManager;
 
@@ -223,6 +252,11 @@ public class RobotContainer {
       //   throw new Exception("The robot is in neither sim nor real. Something has gone seriously wrong");
     }
     m_AutoCommandManager = new AutoCommandManager(elevator, cee);
+
+    // Initialize Quest Pose
+    Pose2d initialPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(90));
+    Pose3d initial3DPose = new Pose3d(initialPose);
+    questNav.setPose(initial3DPose);
     
     // Configure the button bindings
     configureDriverBindings();
@@ -330,15 +364,64 @@ public class RobotContainer {
     }
   }
 
-  public void loggingPeriodic() {
+  public void robotPeriodic() {
+    updateVisionPose();
+    
+  }
+
+  
+
+  public void updateVisionPose() {
+
+    questNav.commandPeriodic(); // Process command responses
+
+    Logger.recordOutput("QuestNav930/QuestIsConnected", questNav.isConnected());
+    Logger.recordOutput("QuestNav930/QuestIsTracking", questNav.isTracking());
+    Logger.recordOutput("QuestNav930/QuestDebug", questDebug);
+
+    if (questDebug++ > 50) {
+      questDebug = 0;
+    }
+
+    if (questNav.isConnected() && questNav.isTracking()) {
+
+      // Get latest pose data
+      PoseFrame[] newFrames = questNav.getAllUnreadPoseFrames();
+      for (PoseFrame questFrame : newFrames) {
+        // Use frame.questPose() and frame.dataTimestamp() with pose estimator
+
+        // Get the pose of the Quest
+        // Pose3d questPose = questFrame.questPose();
+        Pose3d questPose = questFrame.questPose3d();
+        // Get timestamp for when the data was sent
+        double timestamp = questFrame.dataTimestamp();
+
+        Logger.recordOutput("QuestNav930/QuestPose", questPose);
+        Logger.recordOutput("QuestNav930/Timestamp", timestamp);
+
+        // Transform quest to robot pose
+        
+
+        Pose3d robotPose = questPose.transformBy(ROBOT_TO_QUEST.inverse());
+        
+
+        drive.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
+      }
+    }
 
   }
 
   public void disabledPeriodic() {
     // climber.setServoTarget(Degrees.of(180.0));
   }
+  
+  public void loggingPeriodic() {
 
+  }
+
+  
 public Command getAutonomousCommand() {
     return m_AutoCommandManager.getAutonomousCommand();
   }
 }
+
