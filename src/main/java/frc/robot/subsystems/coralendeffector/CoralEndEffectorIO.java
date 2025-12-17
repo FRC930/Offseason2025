@@ -19,6 +19,8 @@ public interface CoralEndEffectorIO {
     public MutCurrent supplyCurrent;
     public MutCurrent torqueCurrent;
     public MutDistance coralDistance;
+    public double rangeStrength;
+    public boolean hasCoralDist;
     public boolean hasCoral;
   }
 
