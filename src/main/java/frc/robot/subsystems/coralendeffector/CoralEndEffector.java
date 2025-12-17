@@ -31,7 +31,8 @@ import frc.robot.util.LoggedTunableNumber;
  */
 public class CoralEndEffector extends SubsystemBase {
 
-  public static double CORAL_DISTANCE_THRESHOLD = 5.0;
+  public static final double CORAL_DISTANCE_THRESHOLD = 5.0;
+  public static final double CORAL_STRENGTH_THRESHOLD = 8000.0;
 
   private CoralEndEffectorIO m_IO;
   private CoralEndEffectorInputsAutoLogged logged = new CoralEndEffectorInputsAutoLogged();
@@ -55,6 +56,7 @@ public class CoralEndEffector extends SubsystemBase {
   public void periodic() {
     m_IO.updateInputs(logged);
     Logger.processInputs("RobotState/CoralEndEffector", logged);
+    Logger.recordOutput("RobotState/CoralEndEffector/CurrentState", m_state.getLabel());
     switch(m_state) {
       case INTAKING -> {
         if (logged.hasCoral) {

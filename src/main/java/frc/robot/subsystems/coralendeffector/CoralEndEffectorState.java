@@ -18,4 +18,8 @@ public enum CoralEndEffectorState {
     public Voltage getVoltage() {
         return m_voltage;
     }
+
+    public String getLabel() {
+        return this.name();
+    }
 }
