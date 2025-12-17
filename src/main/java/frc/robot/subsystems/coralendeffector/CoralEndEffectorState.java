@@ -8,7 +8,7 @@ public enum CoralEndEffectorState {
     IDLE(Volts.of(0.0)),
     INTAKING(Volts.of(4.0)),
     SCORING(Volts.of(12.0)),
-    EJECTING(Volts.of(-12.0));
+    EJECTING(Volts.of(6.0));
 
     private Voltage m_voltage;
     private CoralEndEffectorState(Voltage voltage) {

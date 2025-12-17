@@ -60,7 +60,7 @@ public class CoralEndEffector extends SubsystemBase {
     switch(m_state) {
       case INTAKING -> {
         if (logged.hasCoral) {
-          m_state = CoralEndEffectorState.IDLE;
+          m_state = CoralEndEffectorState.IDLE; //currently not working, always thinks it has coral
         }
       }
       default -> {}
@@ -70,8 +70,12 @@ public class CoralEndEffector extends SubsystemBase {
 
   public Command setStateIntake() {
     return startEnd(
-      () -> this.m_state = CoralEndEffectorState.INTAKING,
-      () -> this.m_state = CoralEndEffectorState.IDLE
+      () -> {
+        this.m_state = CoralEndEffectorState.INTAKING;
+      },
+      () -> {
+        this.m_state = CoralEndEffectorState.IDLE;
+      }
     );
   }
   

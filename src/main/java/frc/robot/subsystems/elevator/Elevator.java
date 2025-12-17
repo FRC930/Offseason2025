@@ -40,18 +40,18 @@ public class Elevator extends SubsystemBase {
 
   // LoggedTunableNumbers for Levels
   public LoggedTunableNumber level1 = new LoggedTunableNumber(
-    "Elevator/Levels/L1",8.0
+    "Elevator/Levels/L1",12.0
     
   );
   
   public LoggedTunableNumber level2 = new LoggedTunableNumber(
-    "Elevator/Levels/L2",18.8
+    "Elevator/Levels/L2",19.8
     
   );
 
   public LoggedTunableNumber level3 = new LoggedTunableNumber(
     "Elevator/Levels/L3",
-    35.0
+    35.5
   );
 
   public LoggedTunableNumber level4 = new LoggedTunableNumber(
