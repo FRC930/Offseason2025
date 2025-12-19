@@ -53,7 +53,9 @@ public class CoralEndEffectorIOTalonFX implements CoralEndEffectorIO {
     inputs.coralDistance.mut_replace(canRange.getDistance().getValue().in(Inches), Inches);
     inputs.rangeStrength = canRange.getSignalStrength().getValueAsDouble();
     inputs.hasCoralDist = canRange.getDistance().getValue().lt(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD));
-    inputs.hasCoral = canRange.getSignalStrength().getValueAsDouble() > CoralEndEffector.CORAL_STRENGTH_THRESHOLD;
+    inputs.hasCoral = canRange.getDistance().getValue().lt(Inches.of(CoralEndEffector.CORAL_DISTANCE_THRESHOLD));
+    // TODO No longer using signal
+    //inputs.hasCoral = canRange.getSignalStrength().getValueAsDouble() > CoralEndEffector.CORAL_STRENGTH_THRESHOLD;
   }
 
   @Override

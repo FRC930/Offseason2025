@@ -31,12 +31,13 @@ import frc.robot.util.LoggedTunableNumber;
  */
 public class CoralEndEffector extends SubsystemBase {
 
-  public static final double CORAL_DISTANCE_THRESHOLD = 5.0;
+  public static final double CORAL_DISTANCE_THRESHOLD = 4.5;
   public static final double CORAL_STRENGTH_THRESHOLD = 8000.0;
 
   private CoralEndEffectorIO m_IO;
   private CoralEndEffectorInputsAutoLogged logged = new CoralEndEffectorInputsAutoLogged();
   private CoralEndEffectorState m_state = CoralEndEffectorState.IDLE;
+  private Debouncer hasCoralDebouncer = new Debouncer(1.0);
 
   public CoralEndEffector(CoralEndEffectorIO io) {
     m_IO = io;
@@ -59,7 +60,7 @@ public class CoralEndEffector extends SubsystemBase {
     Logger.recordOutput("RobotState/CoralEndEffector/CurrentState", m_state.getLabel());
     switch(m_state) {
       case INTAKING -> {
-        if (logged.hasCoral) {
+        if (hasCoralDebouncer.calculate(logged.hasCoral)) {
           m_state = CoralEndEffectorState.IDLE; //currently not working, always thinks it has coral
         }
       }
