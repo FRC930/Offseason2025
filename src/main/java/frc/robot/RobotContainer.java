@@ -71,6 +71,7 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.vision.AprilTagVision;
+import frc.robot.subsystems.vision.OcculusVision;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 
 import static frc.robot.subsystems.vision.VisionConstants.limelightFrontName;
@@ -111,18 +112,15 @@ public class RobotContainer {
   private final CommandXboxController testController = new CommandXboxController(3);
   private final AprilTagVision vision;
 
+  private final OcculusVision occulus;
+
   
 
 
   private boolean m_TeleopInitialized = false;
 
-  private QuestNav questNav = new QuestNav();
-  private Matrix<N3, N1> QUESTNAV_STD_DEVS =
-      VecBuilder.fill(
-          0.02, // Trust down to 2cm in X direction
-          0.02, // Trust down to 2cm in Y direction
-          0.035 // Trust down to 2 degrees rotational
-          );
+  
+  
 
   private final Transform3d ROBOT_TO_QUEST =
       new Transform3d(
@@ -160,6 +158,12 @@ public class RobotContainer {
                 drive::addVisionMeasurementAutoAlign,
                 new VisionIOPhotonVisionSim(limelightLeftName, robotToCameraLeft, drive::getPose),
                 new VisionIOPhotonVisionSim(limelightRightName, robotToCameraRight, drive::getPose));
+                
+        
+         occulus = 
+         new OcculusVision(
+            drive::addVisionMeasurement);
+            
                 
 
        
@@ -213,7 +217,9 @@ public class RobotContainer {
                 new VisionIOLimelight(limelightLeftName, drive::getRotation),
                 new VisionIOLimelight(limelightRightName, drive::getRotation));
                 
-
+        occulus =
+            new OcculusVision(
+                drive::addVisionMeasurement);
       
 
         elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(12).build(),rioCanBuilder.id(11).build()));
@@ -253,10 +259,7 @@ public class RobotContainer {
     }
     m_AutoCommandManager = new AutoCommandManager(elevator, cee);
 
-    // Initialize Quest Pose
-    Pose2d initialPose = new Pose2d(1.0, 2.0, Rotation2d.fromDegrees(90));
-    Pose3d initial3DPose = new Pose3d(initialPose);
-    questNav.setPose(initial3DPose);
+   
     
     // Configure the button bindings
     configureDriverBindings();
@@ -365,51 +368,12 @@ public class RobotContainer {
   }
 
   public void robotPeriodic() {
-    updateVisionPose();
+
     
   }
 
   
 
-  public void updateVisionPose() {
-
-    questNav.commandPeriodic(); // Process command responses
-
-    Logger.recordOutput("QuestNav930/QuestIsConnected", questNav.isConnected());
-    Logger.recordOutput("QuestNav930/QuestIsTracking", questNav.isTracking());
-    Logger.recordOutput("QuestNav930/QuestDebug", questDebug);
-
-    if (questDebug++ > 50) {
-      questDebug = 0;
-    }
-
-    if (questNav.isConnected() && questNav.isTracking()) {
-
-      // Get latest pose data
-      PoseFrame[] newFrames = questNav.getAllUnreadPoseFrames();
-      for (PoseFrame questFrame : newFrames) {
-        // Use frame.questPose() and frame.dataTimestamp() with pose estimator
-
-        // Get the pose of the Quest
-        // Pose3d questPose = questFrame.questPose();
-        Pose3d questPose = questFrame.questPose3d();
-        // Get timestamp for when the data was sent
-        double timestamp = questFrame.dataTimestamp();
-
-        Logger.recordOutput("QuestNav930/QuestPose", questPose);
-        Logger.recordOutput("QuestNav930/Timestamp", timestamp);
-
-        // Transform quest to robot pose
-        
-
-        Pose3d robotPose = questPose.transformBy(ROBOT_TO_QUEST.inverse());
-        
-
-        drive.addVisionMeasurement(robotPose.toPose2d(), timestamp, QUESTNAV_STD_DEVS);
-      }
-    }
-
-  }
 
   public void disabledPeriodic() {
     // climber.setServoTarget(Degrees.of(180.0));
