@@ -21,21 +21,23 @@ package frc.robot;
 
 
 
-import org.littletonrobotics.junction.Logger;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Kilograms;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.Pounds;
+import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
+import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
+import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
+import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
 
 import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Kilograms;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Pounds;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
@@ -46,7 +48,6 @@ import frc.robot.commands.ScoreL4Command;
 import frc.robot.commands.StowCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
-import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOSim;
 import frc.robot.subsystems.coralendeffector.CoralEndEffectorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -57,12 +58,6 @@ import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.vision.AprilTagVision;
-import static frc.robot.subsystems.vision.VisionConstants.limelightFrontName;
-import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
-import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraFront;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
-import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.CanDef;
