@@ -1,6 +1,5 @@
 package frc.robot.subsystems.coralendeffector;
 
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutCurrent;
 import edu.wpi.first.units.measure.MutDistance;

@@ -9,6 +9,7 @@ import com.ctre.phoenix6.controls.StaticBrake;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import static edu.wpi.first.units.Units.Inches;
@@ -69,7 +70,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     PhoenixUtil.tryUntilOk(5, ()->followerMotor.getConfigurator().apply(cfg2));
 
     //NOTE: SET TO OPPOSE MAIN DIRECTION HERE. DO NOT SET OTHERWISE.
-    followerMotor.setControl(new Follower(leaderMotor.getDeviceID(),true));
+    followerMotor.setControl(new Follower(leaderMotor.getDeviceID(),MotorAlignmentValue.Opposed));
   }
 
   @Override
