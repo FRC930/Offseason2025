@@ -29,6 +29,7 @@ import static frc.robot.subsystems.vision.VisionConstants.limelightLeftName;
 import static frc.robot.subsystems.vision.VisionConstants.limelightRightName;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCameraLeft;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCameraRight;
+import static frc.robot.subsystems.vision.VisionConstants.questCamName;
 
 import com.ctre.phoenix6.SignalLogger;
 
@@ -60,6 +61,7 @@ import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.VisionIOLimelight;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.VisionIOQuest;
 import frc.robot.util.CanDef;
 import frc.robot.util.CanDef.CanBus;
 import frc.robot.util.LoggedTunableNumber;
@@ -154,7 +156,8 @@ public class RobotContainer {
                   drive::addVisionMeasurement,
                   drive::addVisionMeasurementAutoAlign,
                   new VisionIOLimelight(limelightLeftName, drive::getRotation),
-                  new VisionIOLimelight(limelightRightName, drive::getRotation)
+                  new VisionIOLimelight(limelightRightName, drive::getRotation),
+                  new VisionIOQuest(questCamName)
                 );
         
         elevator = new Elevator(new ElevatorIOTalonFX(rioCanBuilder.id(12).build(),rioCanBuilder.id(11).build()));

@@ -125,6 +125,9 @@ public class Vision extends SubsystemBase {
       List<Pose3d> robotPosesAccepted = new LinkedList<>();
       List<Pose3d> robotPosesRejected = new LinkedList<>();
 
+      // check if this is a quest post
+      boolean isQuestPose = inputs[cameraIndex].isQuestPose;
+
       // Add tag poses
       for (int tagId : inputs[cameraIndex].tagIds) {
         var tagPose = aprilTagLayout.getTagPose(tagId);
@@ -153,36 +156,43 @@ public class Vision extends SubsystemBase {
 
         // Add pose to log
         robotPoses.add(observation.pose());
-        if (rejectPose) {
-          robotPosesRejected.add(observation.pose());
-        } else {
+        if (isQuestPose && !rejectPose) {
           robotPosesAccepted.add(observation.pose());
         }
+        else {
+          robotPosesRejected.add(observation.pose());
+        }
 
-        // Skip if rejected
-        if (rejectPose) {
+        // Skip if rejected and not a quest pose
+        if (rejectPose && !isQuestPose) {
           continue;
         }
 
-        // Calculate standard deviations
-        double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
-        double linearStdDev = linearStdDevBaseline * stdDevFactor;
-        double angularStdDev = angularStdDevBaseline * stdDevFactor;
-        if (observation.type() == PoseObservationType.MEGATAG_2) {
-          linearStdDev *= linearStdDevMegatag2Factor;
-          angularStdDev *= angularStdDevMegatag2Factor;
+        // send vision observation
+        if (isQuestPose) {
+          addVisionMeasurement(observation.pose().toPose2d(), observation.timestamp(), inputs[cameraIndex].QUESTNAV_STD_DEVS);
         }
-        if (cameraIndex < cameraStdDevFactors.length) {
-          linearStdDev *= cameraStdDevFactors[cameraIndex];
-          angularStdDev *= cameraStdDevFactors[cameraIndex];
-        }
-
-        // Send vision observation
-        addVisionMeasurementAA(
+        else {
+          // Calculate standard deviations
+          double stdDevFactor =
+              Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount();
+          double linearStdDev = linearStdDevBaseline * stdDevFactor;
+          double angularStdDev = angularStdDevBaseline * stdDevFactor;
+          if (observation.type() == PoseObservationType.MEGATAG_2) {
+            linearStdDev *= linearStdDevMegatag2Factor;
+            angularStdDev *= angularStdDevMegatag2Factor;
+          }
+          if (cameraIndex < cameraStdDevFactors.length) {
+            linearStdDev *= cameraStdDevFactors[cameraIndex];
+            angularStdDev *= cameraStdDevFactors[cameraIndex];
+          }
+          
+          // Send vision observation
+          addVisionMeasurementAA(
             observation.pose().toPose2d(),
             observation.timestamp(),
             VecBuilder.fill(linearStdDev, linearStdDev, angularStdDev));
+        }
       }
 
       // Log camera datadata
