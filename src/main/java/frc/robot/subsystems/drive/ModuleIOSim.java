@@ -54,22 +54,19 @@ public class ModuleIOSim implements ModuleIO {
   private double turnAppliedVolts = 0.0;
 
   public ModuleIOSim(
-      SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration>
-          constants) {
-    // Create drive and turn sim models
-    driveSim =
-        new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(
-                DRIVE_GEARBOX, constants.DriveInertia, constants.DriveMotorGearRatio),
-            DRIVE_GEARBOX);
-    turnSim =
-        new DCMotorSim(
-            LinearSystemId.createDCMotorSystem(
-                TURN_GEARBOX, constants.SteerInertia, constants.SteerMotorGearRatio),
-            TURN_GEARBOX);
+    SwerveModuleConstants<TalonFXConfiguration, TalonFXConfiguration, CANcoderConfiguration> constants) {
+      // Create drive and turn sim models
+      driveSim = new DCMotorSim(
+        LinearSystemId.createDCMotorSystem(
+          DRIVE_GEARBOX, constants.DriveInertia, constants.DriveMotorGearRatio),
+        DRIVE_GEARBOX);
+      turnSim = new DCMotorSim(
+        LinearSystemId.createDCMotorSystem(
+          TURN_GEARBOX, constants.SteerInertia, constants.SteerMotorGearRatio),
+        TURN_GEARBOX);
 
-    // Enable wrapping for turn PID
-    turnController.enableContinuousInput(-Math.PI, Math.PI);
+      // Enable wrapping for turn PID
+      turnController.enableContinuousInput(-Math.PI, Math.PI);
   }
 
   @Override

@@ -59,11 +59,10 @@ public class VisionIOPhotonVision implements VisionIO {
       
       // Update latest target observation
       if (result.hasTargets()) {
-        inputs.latestTargetObservation =
-            new TargetObservation(
-                Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                Rotation2d.fromDegrees(result.getBestTarget().getPitch()),
-                result.getBestTarget().fiducialId);
+        inputs.latestTargetObservation = new TargetObservation(
+          Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
+          Rotation2d.fromDegrees(result.getBestTarget().getPitch()),
+          result.getBestTarget().fiducialId);
       } else {
         inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d(), 0);
       }
@@ -87,27 +86,25 @@ public class VisionIOPhotonVision implements VisionIO {
         tagIds.addAll(multitagResult.fiducialIDsUsed);
 
         // Add observation
-        poseObservations.add(
-            new PoseObservation(
-                cameraName,
-                result.getTimestampSeconds(), // Timestamp
-                robotPose, // 3D pose estimate
-                multitagResult.estimatedPose.ambiguity, // Ambiguity
-                multitagResult.fiducialIDsUsed.size(), // Tag count
-                totalTagDistance / result.targets.size(), // Average tag distance
-                PoseObservationType.PHOTONVISION, // Observation type
-                0,
-                0.0));
-
-
+        poseObservations.add( new PoseObservation(
+          cameraName,
+          result.getTimestampSeconds(), // Timestamp
+          robotPose, // 3D pose estimate
+          multitagResult.estimatedPose.ambiguity, // Ambiguity
+          multitagResult.fiducialIDsUsed.size(), // Tag count
+          totalTagDistance / result.targets.size(), // Average tag distance
+          PoseObservationType.PHOTONVISION, // Observation type
+          0,
+          0.0));
       } else if (!result.targets.isEmpty()) { // Single tag result
         var target = result.targets.get(0);
 
         // Calculate robot pose
         var tagPose = aprilTagLayout.getTagPose(target.fiducialId);
         if (tagPose.isPresent()) {
-          Transform3d fieldToTarget =
-              new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
+          Transform3d fieldToTarget = new Transform3d(
+            tagPose.get().getTranslation(), 
+            tagPose.get().getRotation());
           Transform3d cameraToTarget = target.bestCameraToTarget;
           Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
           Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
@@ -117,17 +114,16 @@ public class VisionIOPhotonVision implements VisionIO {
           tagIds.add((short) target.fiducialId);
 
           // Add observation
-          poseObservations.add(
-              new PoseObservation(
-                  cameraName,
-                  result.getTimestampSeconds(), // Timestamp
-                  robotPose, // 3D pose estimate
-                  target.poseAmbiguity, // Ambiguity
-                  1, // Tag count
-                  cameraToTarget.getTranslation().getNorm(), // Average tag distance
-                  PoseObservationType.PHOTONVISION, // Observation type
-                  0,
-                  0.0));
+          poseObservations.add(new PoseObservation(
+            cameraName,
+            result.getTimestampSeconds(), // Timestamp
+            robotPose, // 3D pose estimate
+            target.poseAmbiguity, // Ambiguity
+            1, // Tag count
+            cameraToTarget.getTranslation().getNorm(), // Average tag distance
+            PoseObservationType.PHOTONVISION, // Observation type
+            0,
+            0.0));
         }
       }
     }
@@ -146,10 +142,9 @@ public class VisionIOPhotonVision implements VisionIO {
     }
   }
 
-@Override
-public void setTagIdFilter(int[] filter) {
-  tagFilter = new HashSet<Long>();
-  Arrays.stream(filter).forEach((i)->tagFilter.add((long)i));
-}
-
+  @Override
+  public void setTagIdFilter(int[] filter) {
+    tagFilter = new HashSet<Long>();
+    Arrays.stream(filter).forEach((i)->tagFilter.add((long)i));
+  }
 }

@@ -72,74 +72,75 @@ import frc.robot.util.LocalADStarAK;
 
 public class Drive extends SubsystemBase {
   // TunerConstants doesn't include these constants, so they are declared locally
-  static final double ODOMETRY_FREQUENCY =
-      new CANBus(TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
-  public static final double DRIVE_BASE_RADIUS =
-      Math.max(
-          Math.max(
-              Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
-              Math.hypot(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
-          Math.max(
-              Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
-              Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
-
+  static final double ODOMETRY_FREQUENCY = new CANBus(
+      TunerConstants.DrivetrainConstants.CANBusName).isNetworkFD() ? 250.0 : 100.0;
+  
+  public static final double DRIVE_BASE_RADIUS = Math.max(
+    Math.max(
+      Math.hypot(TunerConstants.FrontLeft.LocationX, TunerConstants.FrontLeft.LocationY),
+      Math.hypot(TunerConstants.FrontRight.LocationX, TunerConstants.FrontRight.LocationY)),
+    Math.max(
+      Math.hypot(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
+      Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY))
+  );
+  
   // PathPlanner config constants
   // Final mass of robot v1 in kg
   private static final double ROBOT_MASS_KG = 65.7708937;
   private static final double ROBOT_MOI = 6.883;
   private static final double WHEEL_COF = 1.2;
-  private static final RobotConfig PP_CONFIG =
-      new RobotConfig(
-          ROBOT_MASS_KG,
-          ROBOT_MOI,
-          new ModuleConfig(
-              TunerConstants.FrontLeft.WheelRadius,
-              TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
-              WHEEL_COF,
-              DCMotor.getKrakenX60(1).withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
-              TunerConstants.FrontLeft.SlipCurrent,
-              1),
-          getModuleTranslations());
+  private static final RobotConfig PP_CONFIG = new RobotConfig(
+    ROBOT_MASS_KG,
+    ROBOT_MOI,
+    new ModuleConfig(
+        TunerConstants.FrontLeft.WheelRadius,
+        TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+        WHEEL_COF,
+        DCMotor.getKrakenX60(1).withReduction(TunerConstants.FrontLeft.DriveMotorGearRatio),
+        TunerConstants.FrontLeft.SlipCurrent,
+        1),
+    getModuleTranslations()
+  );
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
-  private final Alert gyroDisconnectedAlert =
-      new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
-
+  private final Alert gyroDisconnectedAlert = new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
   private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(getModuleTranslations());
   private Rotation2d rawGyroRotation = new Rotation2d();
-  private SwerveModulePosition[] lastModulePositions = // For delta tracking
-      new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition()
-      };
-  private SwerveDrivePoseEstimator poseEstimator =
-      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
-  private SwerveDrivePoseEstimator poseEstimatorAutoAlign =
-    new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
-
+  // For delta tracking
+  private SwerveModulePosition[] lastModulePositions = new SwerveModulePosition[] {
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition()
+    };
+  
+  private SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
+    kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  
+  private SwerveDrivePoseEstimator poseEstimatorAutoAlign = new SwerveDrivePoseEstimator(
+    kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  
   private final Field2d ppField2d = new Field2d();
   private final Field2d robotField2d = new Field2d();
-  
   PIDController posPID = new PIDController(5.0, 0.0, 0.0);
-  PIDController rotPID = new PIDController(5.0,0.0,0.0);  
+  PIDController rotPID = new PIDController(5.0,0.0,0.0); 
+
   public Drive(
-      GyroIO gyroIO,
-      ModuleIO flModuleIO,
-      ModuleIO frModuleIO,
-      ModuleIO blModuleIO,
-      ModuleIO brModuleIO) {
-    this.gyroIO = gyroIO;
-    modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
-    modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
-    modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
-    modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
+    GyroIO gyroIO,
+    ModuleIO flModuleIO,
+    ModuleIO frModuleIO,
+    ModuleIO blModuleIO,
+    ModuleIO brModuleIO) {
+      this.gyroIO = gyroIO;
+      modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
+      modules[1] = new Module(frModuleIO, 1, TunerConstants.FrontRight);
+      modules[2] = new Module(blModuleIO, 2, TunerConstants.BackLeft);
+      modules[3] = new Module(brModuleIO, 3, TunerConstants.BackRight);
 
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
@@ -151,40 +152,40 @@ public class Drive extends SubsystemBase {
     SmartDashboard.putData("pp_field", ppField2d);
     SmartDashboard.putData("robot_field", robotField2d);
     AutoBuilder.configure(
-        this::getPose,
-        this::setPose,
-        this::getChassisSpeeds,
-        this::runVelocity,
-        new PPHolonomicDriveController(
-            new PIDConstants(10.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
-        PP_CONFIG,
-        () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
-        this);
+      this::getPose,
+      this::setPose,
+      this::getChassisSpeeds,
+      this::runVelocity,
+      new PPHolonomicDriveController(
+          new PIDConstants(10.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
+      PP_CONFIG,
+      () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+      this);
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
-        (activePath) -> {
-          Logger.recordOutput(
-              "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
-        });
+      (activePath) -> {
+        Logger.recordOutput(
+            "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+      });
     PathPlannerLogging.setLogTargetPoseCallback(
-        (targetPose) -> {
-          ppField2d.setRobotPose(targetPose);
-          Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
-        });
+      (targetPose) -> {
+        ppField2d.setRobotPose(targetPose);
+        Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
+      });
 
     // Configure SysId
-    sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                // (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
+    sysId = new SysIdRoutine(
+      new SysIdRoutine.Config(
+          null,
+          null,
+          null,
+          // (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
 
-                // Log with .hoot files (MAKE SURE LOGGER IS STARTED)
-                (state) -> SignalLogger.writeString("sysid_state", state.toString())),
-            new SysIdRoutine.Mechanism(
-                (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
+          // Log with .hoot files (MAKE SURE LOGGER IS STARTED)
+          (state) -> SignalLogger.writeString("sysid_state", state.toString())),
+      new SysIdRoutine.Mechanism(
+          (voltage) -> runCharacterization(voltage.in(Volts)), null, this)
+    );
   }
 
   @Override
@@ -211,8 +212,7 @@ public class Drive extends SubsystemBase {
     }
 
     // Update odometry
-    double[] sampleTimestamps =
-        modules[0].getOdometryTimestamps(); // All signals are sampled together
+    double[] sampleTimestamps = modules[0].getOdometryTimestamps(); // All signals are sampled together
     int sampleCount = sampleTimestamps.length;
     for (int i = 0; i < sampleCount; i++) {
       // Read wheel positions and deltas from each module
@@ -329,8 +329,8 @@ public class Drive extends SubsystemBase {
   /** Returns a command to run a quasistatic test in the specified direction. */
   public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
     return run(() -> runCharacterization(0.0))
-        .withTimeout(1.0)
-        .andThen(sysId.quasistatic(direction));
+      .withTimeout(1.0)
+      .andThen(sysId.quasistatic(direction));
   }
 
   /** Returns a command to run a dynamic test in the specified direction. */
@@ -403,7 +403,6 @@ public class Drive extends SubsystemBase {
 
   public Distance getDistanceTo(Pose2d other) {
     Logger.recordOutput("AutoAlign/RegPose",this.getPose().getTranslation().getDistance(other.getTranslation()));
-    
     Logger.recordOutput("AutoAlign/RoboPose",this.getAutoAlignPose());
     Logger.recordOutput("AutoAlign/TargPose",other);
 
@@ -424,19 +423,19 @@ public class Drive extends SubsystemBase {
 
   /** Adds a new timestamped vision measurement. */
   public void addVisionMeasurement(
-      Pose2d visionRobotPoseMeters,
-      double timestampSeconds,
-      Matrix<N3, N1> visionMeasurementStdDevs) {
-    poseEstimator.addVisionMeasurement(
+    Pose2d visionRobotPoseMeters,
+    double timestampSeconds,
+    Matrix<N3, N1> visionMeasurementStdDevs) {
+      poseEstimator.addVisionMeasurement(
         visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   public void addVisionMeasurementAutoAlign(
-      Pose2d visionRobotPoseMeters,
-      double timestampSeconds,
-      Matrix<N3, N1> visionMeasurementStdDevs){
-        poseEstimatorAutoAlign.addVisionMeasurement(
-          visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+    Pose2d visionRobotPoseMeters,
+    double timestampSeconds,
+    Matrix<N3, N1> visionMeasurementStdDevs) {
+      poseEstimatorAutoAlign.addVisionMeasurement(
+        visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
   }
 
   /** Returns the maximum linear speed in meters per sec. */

@@ -131,7 +131,6 @@ public class Vision extends SubsystemBase {
         if (tagPose.isPresent()) {
           tagPoses.add(tagPose.get());
         }
-        
       }
 
       // Loop over pose observations

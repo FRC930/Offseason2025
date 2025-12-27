@@ -18,7 +18,7 @@ public class CanDef {
   private CanDef(int id, CanBus bus) {
     if (id < 0) {
       throw new IllegalArgumentException(
-          "CAN ID (" + id + ", " + bus.name + ") must be non-negative");
+        "CAN ID (" + id + ", " + bus.name + ") must be non-negative");
     }
 
     this.id = id;
