@@ -1,9 +1,11 @@
 package frc.robot.operator;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants;
 import frc.robot.util.EnumState;
 import org.littletonrobotics.junction.Logger;
 
@@ -18,6 +20,8 @@ import org.littletonrobotics.junction.Logger;
  *   <li>Expose intent triggers (what operator WANTS, considering mode)</li>
  *   <li>Does NOT know about hardware state or safety</li>
  * </ul>
+ *
+ * <p>In simulation mode, inputs can be triggered via Shuffleboard toggles.
  */
 public class OperatorIntent implements OperatorIntentEvents {
 
@@ -28,6 +32,9 @@ public class OperatorIntent implements OperatorIntentEvents {
     private final EnumState<ScoringSide> selectedSide = new EnumState<>("OperatorIntent/Side", ScoringSide.LEFT);
     private final EnumState<OperatorMode> mode = new EnumState<>("OperatorIntent/Mode", OperatorMode.TELEOP);
 
+    // Simulation mode flag
+    private final boolean simMode;
+
     /**
      * Creates OperatorIntent with driver controller on specified port.
      *
@@ -35,7 +42,12 @@ public class OperatorIntent implements OperatorIntentEvents {
      */
     public OperatorIntent(int driverPort) {
         this.driver = new CommandXboxController(driverPort);
+        this.simMode = (Constants.currentMode == Constants.Mode.SIM);
         configureSelections();
+
+        if (simMode) {
+            configureSimInputs();
+        }
     }
 
     /** Wire POV/bumpers to store selections. */
@@ -45,6 +57,21 @@ public class OperatorIntent implements OperatorIntentEvents {
         driver.povRight().onTrue(setLevel(ScoringLevel.L2));
         driver.povLeft().onTrue(setLevel(ScoringLevel.L3));
         driver.povUp().onTrue(setLevel(ScoringLevel.L4));
+    }
+
+    /** Configure SmartDashboard inputs for simulation testing. */
+    private void configureSimInputs() {
+        // Initialize SmartDashboard values
+        SmartDashboard.putBoolean("Sim/Score", false);
+        SmartDashboard.putBoolean("Sim/Intake", false);
+        SmartDashboard.putBoolean("Sim/Eject", false);
+        SmartDashboard.putNumber("Sim/Level", 1);
+
+        // Wire level selector changes to set level
+        new Trigger(() -> SmartDashboard.getNumber("Sim/Level", 1) == 1).onTrue(setLevel(ScoringLevel.L1));
+        new Trigger(() -> SmartDashboard.getNumber("Sim/Level", 1) == 2).onTrue(setLevel(ScoringLevel.L2));
+        new Trigger(() -> SmartDashboard.getNumber("Sim/Level", 1) == 3).onTrue(setLevel(ScoringLevel.L3));
+        new Trigger(() -> SmartDashboard.getNumber("Sim/Level", 1) == 4).onTrue(setLevel(ScoringLevel.L4));
     }
 
     // ==================== STATE MUTATION COMMANDS ====================
@@ -63,19 +90,31 @@ public class OperatorIntent implements OperatorIntentEvents {
 
     // ==================== RAW INPUT TRIGGERS ====================
 
-    /** Returns true while the score button is held. */
+    /** Returns true while the score button is held (controller OR sim toggle). */
     public Trigger scoreButtonPressed() {
-        return driver.rightTrigger(0.5);
+        Trigger controllerTrigger = driver.rightTrigger(0.5);
+        if (simMode) {
+            return controllerTrigger.or(new Trigger(() -> SmartDashboard.getBoolean("Sim/Score", false)));
+        }
+        return controllerTrigger;
     }
 
-    /** Returns true while the intake button is held. */
+    /** Returns true while the intake button is held (controller OR sim toggle). */
     public Trigger intakeButtonPressed() {
-        return driver.leftTrigger();
+        Trigger controllerTrigger = driver.leftTrigger();
+        if (simMode) {
+            return controllerTrigger.or(new Trigger(() -> SmartDashboard.getBoolean("Sim/Intake", false)));
+        }
+        return controllerTrigger;
     }
 
-    /** Returns true while the eject button is held. */
+    /** Returns true while the eject button is held (controller OR sim toggle). */
     public Trigger ejectButtonPressed() {
-        return driver.rightBumper();
+        Trigger controllerTrigger = driver.rightBumper();
+        if (simMode) {
+            return controllerTrigger.or(new Trigger(() -> SmartDashboard.getBoolean("Sim/Eject", false)));
+        }
+        return controllerTrigger;
     }
 
     // ==================== SELECTION TRIGGERS ====================
