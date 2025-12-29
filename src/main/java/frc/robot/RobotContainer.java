@@ -160,10 +160,10 @@ public final class RobotContainer {
         }
 
         // Layer 2: Robot Goals (needs OperatorIntent for composed triggers)
-        goals = new RobotGoals(intent);
+        goals = new RobotGoals();
 
         // Auto commands
-        autoCommandManager = new AutoCommandManager(elevator, cee, goals, intent);
+        autoCommandManager = new AutoCommandManager(elevator, cee, goals);
 
         // Configure drive command
         configureDriveCommand();
@@ -178,7 +178,7 @@ public final class RobotContainer {
         new CoralEndEffectorBehavior(cee);
 
         // Wire all behaviors
-        GoalBehavior.configureAll(intent, goals);
+        GoalBehavior.configureAll(intent);
         SubsystemBehavior.configureAll(goals, cee, elevator);
     }
 

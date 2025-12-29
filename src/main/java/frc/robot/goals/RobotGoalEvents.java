@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * Behaviors should only depend on this interface, not on RobotGoals directly.
  */
 public interface RobotGoalEvents {
-    // Basic goal state triggers
     Trigger isIdle();
 
     Trigger isIntaking();
@@ -18,7 +17,10 @@ public interface RobotGoalEvents {
 
     Trigger isClimbing();
 
-    // Composed triggers: goal + selected level
+    Trigger levelIs(ScoringLevel level);
+
+    Trigger sideIs(ScoringSide side);
+
     Trigger scoringAtL1();
 
     Trigger scoringAtL2();

@@ -1,44 +1,34 @@
 package frc.robot.goals;
 
-import frc.robot.operator.OperatorIntent;
+import frc.robot.operator.OperatorIntentEvents;
 import frc.robot.util.GoalBehavior;
 
 /**
- * Behavior that wires operator intent to robot goal state changes.
- * This follows the same pattern as subsystem behaviors but operates at the goal layer.
+ * Wires operator button presses to robot goal state.
  *
- * <p>Architecture:
- * <pre>
- * OperatorIntent (UI Layer)
- *        │
- *        ▼ (RobotGoalsBehavior listens)
- * RobotGoals (API Layer)
- *        │
- *        ▼ (SubsystemBehaviors listen)
- * Hardware Subsystems
- * </pre>
+ * This is the teleop-specific logic. Autonomous bypasses this
+ * and calls RobotGoals.setGoal() / setLevel() directly.
  */
 public class RobotGoalsBehavior extends GoalBehavior {
 
-    private final RobotGoals goals;
+    private RobotGoals goals;
 
     public RobotGoalsBehavior(RobotGoals goals) {
-        super();
         this.goals = goals;
     }
 
     @Override
-    public void configure(OperatorIntent intent, RobotGoalEvents goalEvents) {
-        // Score: active while button held, returns to IDLE on release
+    public void configure(OperatorIntentEvents intent) {
+        intent.selectL1().onTrue(goals.setLevel(ScoringLevel.L1));
+        intent.selectL2().onTrue(goals.setLevel(ScoringLevel.L2));
+        intent.selectL3().onTrue(goals.setLevel(ScoringLevel.L3));
+        intent.selectL4().onTrue(goals.setLevel(ScoringLevel.L4));
+
+        // Intent triggers → Goal state
         intent.wantsToScore().onTrue(goals.setGoal(RobotGoal.SCORING)).onFalse(goals.setGoal(RobotGoal.IDLE));
 
-        // Intake: active while button held
-        intent.wantsToIntake().onTrue(goals.setGoal(RobotGoal.INTAKING)).onFalse(goals.setGoal(RobotGoal.IDLE));
+        intent.wantsToIntake().whileTrue(goals.setGoal(RobotGoal.INTAKING)).onFalse(goals.setGoal(RobotGoal.IDLE));
 
-        // Eject: active while button held
-        intent.wantsToEject().onTrue(goals.setGoal(RobotGoal.EJECTING)).onFalse(goals.setGoal(RobotGoal.IDLE));
-
-        // Climb: active while in climb mode
-        intent.wantsToClimb().onTrue(goals.setGoal(RobotGoal.CLIMBING)).onFalse(goals.setGoal(RobotGoal.IDLE));
+        intent.wantsToEject().whileTrue(goals.setGoal(RobotGoal.EJECTING)).onFalse(goals.setGoal(RobotGoal.IDLE));
     }
 }

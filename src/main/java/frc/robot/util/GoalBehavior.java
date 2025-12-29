@@ -1,7 +1,6 @@
 package frc.robot.util;
 
-import frc.robot.goals.RobotGoalEvents;
-import frc.robot.operator.OperatorIntent;
+import frc.robot.operator.OperatorIntentEvents;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,9 +45,9 @@ public abstract class GoalBehavior extends Behavior<GoalBehavior> {
      * @param intent The operator intent to react to
      * @param goals The goal events interface (for reading current goals if needed)
      */
-    public static void configureAll(OperatorIntent intent, RobotGoalEvents goals) {
+    public static void configureAll(OperatorIntentEvents intent) {
         for (GoalBehavior behavior : goalBehaviors) {
-            behavior.configure(intent, goals);
+            behavior.configure(intent);
         }
     }
 
@@ -58,5 +57,5 @@ public abstract class GoalBehavior extends Behavior<GoalBehavior> {
      * @param intent The operator intent to react to
      * @param goals The goal events interface (for reading current goals if needed)
      */
-    public abstract void configure(OperatorIntent intent, RobotGoalEvents goals);
+    public abstract void configure(OperatorIntentEvents intent);
 }

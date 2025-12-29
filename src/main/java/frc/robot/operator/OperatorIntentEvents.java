@@ -7,7 +7,19 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * Keeps the contract minimal - behaviors shouldn't know about raw button inputs.
  */
 public interface OperatorIntentEvents {
-    Trigger levelIs(ScoringLevel level);
+    public Trigger wantsToScore();
 
-    Trigger sideIs(ScoringSide side);
+    public Trigger wantsToIntake();
+
+    public Trigger wantsToEject();
+
+    // ==================== LEVEL SELECTION BUTTONS ====================
+
+    public Trigger selectL1();
+
+    public Trigger selectL2();
+
+    public Trigger selectL3();
+
+    public Trigger selectL4();
 }
