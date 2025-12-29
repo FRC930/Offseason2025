@@ -1,164 +1,89 @@
 package frc.robot.subsystems.elevator;
 
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
-import org.littletonrobotics.junction.Logger;
+import static edu.wpi.first.units.Units.Inches;
 
 import edu.wpi.first.math.MathUtil;
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.InchesPerSecond;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Volts;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.RobotState;
+import frc.robot.util.EnumState;
 import frc.robot.util.LoggedTunableGainsBuilder;
-import frc.robot.util.LoggedTunableNumber;
+import org.littletonrobotics.junction.Logger;
 
-public class Elevator extends SubsystemBase {
-  private ElevatorIO m_ElevatorIO;
+public class Elevator extends SubsystemBase implements ElevatorEvents {
+    private final ElevatorIO io;
+    private final ElevatorInputsAutoLogged logged = new ElevatorInputsAutoLogged();
+    private final EnumState<ElevatorState> state = new EnumState<>(ElevatorState.STOW);
 
-  ElevatorInputsAutoLogged loggedelevator = new ElevatorInputsAutoLogged();
+    public static final double SPOOL_RADIUS = 1.751 / 2.0;
+    public static final double INCHES_PER_ROT =
+            (2.0 * (2.0 * Math.PI * SPOOL_RADIUS)); // Multiplied by 2 because its a 2
+    // stage cascading elevator
+    public static final double REDUCTION = (11.0 / 4.0);
+    public static final double TOLERANCE = 1.0;
 
-  public static final double SPOOL_RADIUS = 1.751 / 2.0;
+    public LoggedTunableGainsBuilder tunableGains = new LoggedTunableGainsBuilder(
+            "Gains/Elevator/", 400.0, 0, 25.0, 0.0, 30.0, 0.0, 0.0, 75.0, 30.0, 0.0, 0.0, 0.0);
 
-  public static final double INCHES_PER_ROT = (2.0 * (2.0 * Math.PI * SPOOL_RADIUS)); //Multiplied by 2 because its a 2 stage cascading elevator
-  
-  public static final double REDUCTION = (11.0/4.0);
+    public Elevator(ElevatorIO elevatorIO) {
+        this.io = elevatorIO;
+        io.setGains(tunableGains.build());
+        RobotState.instance().setElevatorSource(logged.distance);
+    }
 
-  public LoggedTunableGainsBuilder tunableGains = new LoggedTunableGainsBuilder(
-    "Gains/Elevator/", 
-    400.0, 0, 25.0, 
-    0.0, 30.0, 0.0, 0.0, 
-    75.0, 30.0, 0.0, 0.0, 0.0
-  );
+    @Override
+    public void periodic() {
+        tunableGains.ifGainsHaveChanged((gains) -> this.io.setGains(gains));
+        io.updateInputs(logged);
+        Logger.processInputs("RobotState/Elevator", logged);
 
-  // LoggedTunableNumbers for Levels
-  public LoggedTunableNumber level1 = new LoggedTunableNumber(
-    "Elevator/Levels/L1",12.0
-    
-  );
-  
-  public LoggedTunableNumber level2 = new LoggedTunableNumber(
-    "Elevator/Levels/L2",19.8
-    
-  );
+        switch (state.get()) {
+            case STOW -> {}
+            case L1 -> {}
+            case L2 -> {}
+            case L3 -> {}
+            case L4 -> {}
+            default -> {}
+        }
 
-  public LoggedTunableNumber level3 = new LoggedTunableNumber(
-    "Elevator/Levels/L3",
-    35.5
-  );
+        io.setTarget(Inches.of(state.get().getTargetPosition().getAsDouble()));
+    }
 
-  public LoggedTunableNumber level4 = new LoggedTunableNumber(
-    "Elevator/Levels/L4",
-    57.0
-  );
+    public Command setState(ElevatorState state) {
+        return runOnce(() -> this.state.set(state));
+    }
 
-  public Elevator(ElevatorIO elevatorIO) {
-    m_ElevatorIO = elevatorIO;
-    loggedelevator.distance = Inches.mutable(0);
-    loggedelevator.velocity = InchesPerSecond.mutable(0);
-    loggedelevator.setPoint = Meters.mutable(0);
-    loggedelevator.supplyCurrent = Amps.mutable(0);
-    loggedelevator.torqueCurrent = Amps.mutable(0);
-    loggedelevator.voltageSetPoint = Volts.mutable(0);
-    loggedelevator.voltage = Volts.mutable(0);
+    @Override
+    public Trigger atTarget() {
+        return new Trigger(() -> {
+            return MathUtil.isNear(
+                    logged.distance.in(Inches), state.get().getTargetPosition().getAsDouble(), TOLERANCE);
+        });
+    }
 
-    this.m_ElevatorIO.setGains(tunableGains.build());
-    RobotState.instance().setElevatorSource(loggedelevator.distance);
-  }
+    @Override
+    public Trigger atStow() {
+        return atTarget().and(state.is(ElevatorState.STOW));
+    }
 
-  public Supplier<Distance> getDistanceExtendedSupplier() {
-    return () -> loggedelevator.distance;
-  }
+    @Override
+    public Trigger atL1() {
+        return atTarget().and(state.is(ElevatorState.L1));
+    }
 
-  public Supplier<Boolean> getDistanceGreaterSupplier(Distance distance) {
-    return () -> loggedelevator.distance.baseUnitMagnitude() > distance.baseUnitMagnitude();
-  }
+    @Override
+    public Trigger atL2() {
+        return atTarget().and(state.is(ElevatorState.L2));
+    }
 
-  public Supplier<Boolean> getDistanceLessSupplier(Distance distance) {
-    return () -> loggedelevator.distance.baseUnitMagnitude() < distance.baseUnitMagnitude();
-  }
+    @Override
+    public Trigger atL3() {
+        return atTarget().and(state.is(ElevatorState.L3));
+    }
 
-  public Supplier<Boolean> getDistanceAtSupplier(Distance distance, Distance error) {
-    return () -> MathUtil.isNear(distance.baseUnitMagnitude(), loggedelevator.distance.baseUnitMagnitude(), error.baseUnitMagnitude());
-  }
-
-  public void setDistance(Distance target) {
-    m_ElevatorIO.setTarget(target);
-  }
-
-  public Command getNewSetDistanceCommand(DoubleSupplier distance) {
-    return new InstantCommand(
-        () -> {
-          setDistance(Inches.of(distance.getAsDouble()));
-        },
-        this);
-  }
-  /**
-   * @param i Inches
-   * */
-  public Command getNewSetDistanceCommand(double i) {
-    return new InstantCommand(
-        () -> {
-          setDistance(Inches.of(i));
-        },
-        this);
-  }
-
-  
-
-  public Trigger getNewAtDistanceTrigger(Distance dist, Distance tolerance) {
-    return new Trigger(() -> {
-      return MathUtil.isNear(dist.baseUnitMagnitude(), loggedelevator.distance.baseUnitMagnitude(), tolerance.baseUnitMagnitude());
-    });
-  }
-
-  public Trigger getNewAtDistanceTrigger(DoubleSupplier dist, DoubleSupplier tolerance) {
-    return new Trigger(() -> {
-      return atDistance(dist, tolerance);
-    });
-  }
-
-  public boolean atDistance(DoubleSupplier tolerance) {
-    return MathUtil.isNear(loggedelevator.setPoint.in(Inches), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
-  }
-
-  public boolean atDistance(DoubleSupplier dist, DoubleSupplier tolerance) {
-    return MathUtil.isNear(dist.getAsDouble(), loggedelevator.distance.in(Inches), tolerance.getAsDouble());
-  }
-
-  /**
-   * Returns when this joint is greater than 'angle' away from the forward horizontal
-   * @param angle
-   * @return
-   */
-  public Trigger getNewGreaterThanDistanceTrigger(DoubleSupplier distance) {
-    return new Trigger(() -> {
-      return loggedelevator.distance.in(Inches) > distance.getAsDouble();
-    });
-  }
-
-  /**
-   * Returns when this joint is less than 'angle' away from the forward horizontal
-   * @param angle
-   * @return
-   */
-  public Trigger getNewLessThanDistanceTrigger(DoubleSupplier distance) {
-    return new Trigger(() -> {
-      return loggedelevator.distance.in(Inches) < distance.getAsDouble();
-    });
-  }
-
-  @Override
-  public void periodic() {
-    tunableGains.ifGainsHaveChanged((gains) -> this.m_ElevatorIO.setGains(gains));
-    m_ElevatorIO.updateInputs(loggedelevator);
-    Logger.processInputs("RobotState/Elevator", loggedelevator);
-  }
+    @Override
+    public Trigger atL4() {
+        return atTarget().and(state.is(ElevatorState.L4));
+    }
 }
