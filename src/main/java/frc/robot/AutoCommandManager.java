@@ -1,61 +1,40 @@
 package frc.robot;
 
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.commands.IntakeCommand;
-import frc.robot.commands.ScoreL1Command;
-import frc.robot.commands.ScoreL2Command;
-import frc.robot.commands.ScoreL3Command;
-import frc.robot.commands.ScoreL4Command;
-import frc.robot.commands.StowCommand;
-import frc.robot.commands.WaitScoreFactory;
+import frc.robot.goals.RobotGoal;
+import frc.robot.goals.RobotGoals;
+import frc.robot.goals.ScoringLevel;
 import frc.robot.subsystems.coralendeffector.CoralEndEffector;
 import frc.robot.subsystems.elevator.Elevator;
-
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 public class AutoCommandManager {
 
-  // Dashboard inputs
+    private final LoggedDashboardChooser<Command> autoChooser;
 
-  private final LoggedDashboardChooser<Command> autoChooser;
+    public AutoCommandManager(Elevator elevator, CoralEndEffector cee, RobotGoals goals) {
+        // Note: no OperatorIntent needed!
+        configureNamedCommands(elevator, cee, goals);
+        autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+    }
 
-  public AutoCommandManager(Elevator elevator, CoralEndEffector cee) {
-    configureNamedCommands(elevator, cee);
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+    private void configureNamedCommands(Elevator elevator, CoralEndEffector cee, RobotGoals goals) {
+        NamedCommands.registerCommand("Stow", goals.setGoal(RobotGoal.IDLE));
+        NamedCommands.registerCommand("Intake", goals.setGoal(RobotGoal.INTAKING));
 
-    // // Set up SysId routines
-    // autoChooser.addOption(
-    //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    // autoChooser.addOption(
-    //     "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Forward)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Reverse)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-  
-  };
+        // Clean! One call sets both level and goal
+        NamedCommands.registerCommand("ScoreL1", goals.scoreAt(ScoringLevel.L1));
+        NamedCommands.registerCommand("ScoreL2", goals.scoreAt(ScoringLevel.L2));
+        NamedCommands.registerCommand("ScoreL3", goals.scoreAt(ScoringLevel.L3));
+        NamedCommands.registerCommand("ScoreL4", goals.scoreAt(ScoringLevel.L4));
 
-  public Command getAutonomousCommand() {
-      return autoChooser.get();
-  }
+        NamedCommands.registerCommand(
+                "ConfirmScore", cee.score().until(cee.hasCoral().negate()));
+    }
 
-  private void configureNamedCommands(Elevator elevator, CoralEndEffector cee) {
-    NamedCommands.registerCommand("Stow", new StowCommand(elevator, cee));
-    NamedCommands.registerCommand("ConfirmScore", cee.setStateScoring().until(cee.hasCoral().negate()));
-    NamedCommands.registerCommand("ScoreL1", WaitScoreFactory.create(new ScoreL1Command(elevator), 1.0, 0.5, cee));
-    NamedCommands.registerCommand("ScoreL2", WaitScoreFactory.create(new ScoreL2Command(elevator), 1.0, 0.5, cee));
-    NamedCommands.registerCommand("ScoreL3", WaitScoreFactory.create(new ScoreL3Command(elevator), 1.0, 0.5, cee));
-    NamedCommands.registerCommand("ScoreL4", WaitScoreFactory.create(new ScoreL4Command(elevator), 1.0, 0.5, cee));
-    NamedCommands.registerCommand("Intake", new IntakeCommand(cee).withTimeout(Robot.isReal() ? 5.0 : 100.0));
-  };
+    public Command getAutonomousCommand() {
+        return autoChooser.get();
+    }
 }
