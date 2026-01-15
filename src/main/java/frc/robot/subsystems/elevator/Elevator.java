@@ -93,6 +93,10 @@ public class Elevator extends SubsystemBase {
     m_ElevatorIO.setTarget(target);
   }
 
+  public void setVoltage(double voltage){
+    m_ElevatorIO.setVoltage(voltage);
+  }
+
   public Command getNewSetDistanceCommand(DoubleSupplier distance) {
     return new InstantCommand(
         () -> {

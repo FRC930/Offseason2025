@@ -78,4 +78,8 @@ public class ElevatorIOSim implements ElevatorIO {
   public void setGains(Gains gains) {
     // DriverStation.reportWarning("Sim gains tuning not implemented", true);
   }
+
+  public void setVoltage(double voltage){
+    System.out.print("");
+  }
 }

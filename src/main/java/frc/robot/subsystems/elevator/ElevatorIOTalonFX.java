@@ -6,6 +6,9 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.StaticBrake;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -16,6 +19,7 @@ import static edu.wpi.first.units.Units.InchesPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Velocity;
 import frc.robot.util.CanDef;
 import frc.robot.util.Gains;
 import frc.robot.util.PhoenixUtil;
@@ -27,8 +31,6 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   public MotionMagicTorqueCurrentFOC Request;
   public TalonFX leaderMotor;
   public TalonFX followerMotor;
-
-
 
   private Distance m_setPoint = Distance.ofBaseUnits(0, Inches);
 
@@ -118,5 +120,12 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     motionMagicConfigs.MotionMagicExpo_kV = gains.kMMEV;
     motionMagicConfigs.MotionMagicExpo_kA = gains.kMMEA;
     PhoenixUtil.tryUntilOk(5, () -> leaderMotor.getConfigurator().apply(motionMagicConfigs));
+  }
+
+  @Override
+  public void setVoltage(double voltage) {
+    // targetVelocityRps is in Rotations Per Second
+    VoltageOut Request = new VoltageOut(voltage);
+    leaderMotor.setControl(Request);
   }
 }

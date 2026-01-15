@@ -263,11 +263,16 @@ public class RobotContainer {
     controller.povUp().onTrue(new ScoreL4Command(elevator))
     .onFalse(new StowCommand(elevator, cee));
     
-    controller.rightTrigger().and(cee.hasCoral()).whileTrue(cee.setStateScoring());
+    // controller.rightTrigger().and(cee.hasCoral()).whileTrue(cee.setStateScoring());
     
-    controller.leftTrigger().whileTrue(cee.setStateIntake());
+    //controller.leftTrigger().whileTrue(cee.setStateIntake());
 
-    controller.rightBumper().whileTrue(cee.setStateEjecting());
+    // controller.rightBumper().whileTrue(cee.setStateEjecting());
+    controller.rightBumper().whileTrue(new InstantCommand(()->elevator.setVoltage(1.0)));
+    controller.rightBumper().onFalse(new InstantCommand(()->elevator.setVoltage(0.0)));
+
+    controller.rightTrigger().whileTrue(new InstantCommand(()->elevator.setVoltage(-12.0)));
+    controller.rightTrigger().onFalse(new InstantCommand(()->elevator.setVoltage(0.0)));
   }
 
     // Coral Station Intake Auto Align Sequence†
